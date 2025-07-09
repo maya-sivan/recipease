@@ -41,17 +41,17 @@ for topic in topics:
 
 
 
-gpt_4o = ChatOpenAI(api_key=OPENAI_API_KEY, model="gpt-4o", temperature=0.0)
+# gpt_4o = ChatOpenAI(api_key=OPENAI_API_KEY, model="gpt-4o", temperature=0.0)
 
-prompt = """
-    You are a Journalist agent.
+# prompt = """
+#     You are a Journalist agent.
 
-    - Generate a daily news digest. Today's date is {date}.
-    - Use only the following sources to get accurate information for each topic and write a short article about it:
-      {context}.
-    """
+#     - Generate a daily news digest. Today's date is {date}.
+#     - Use only the following sources to get accurate information for each topic and write a short article about it:
+#       {context}.
+#     """
 
-formatted_prompt = prompt.format(context=context, date=datetime.now().strftime("%Y-%m-%d"))
-gpt_4o_response = gpt_4o.invoke(formatted_prompt)
+# formatted_prompt = prompt.format(context=context, date=datetime.now().strftime("%Y-%m-%d"))
+# gpt_4o_response = gpt_4o.invoke(formatted_prompt)
 
-print(gpt_4o_response.content)
+# print(gpt_4o_response.content)
