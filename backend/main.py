@@ -1,7 +1,8 @@
 
-from agents import extract_contents, extract_user_weights, search_listings
-from agent_types import State
-from langgraph.graph import StateGraph, END
+from typing import Literal
+from agents import extract_contents, query_to_features_agent, search_recipes
+from agent_types import State, UserInfo
+from langgraph.graph import StateGraph, END, START
 import json
 
 
@@ -11,28 +12,31 @@ class MasterAgent:
   
    def _create_workflow(self) -> StateGraph:
        workflow = StateGraph(State)
+
+       def decide_entry_point(state: State) -> Literal["search_recipes", "query_to_features"]:
+            """Determines the entry point based on the presence of user information."""
+            return "query_to_features" if state.user_info is None else "search_recipes"
+
       
        # nodes
-       workflow.add_node("search", search_listings)
-       workflow.add_node("extract", extract_contents)
-       workflow.add_node("extract_weights", extract_user_weights)
-      
+       workflow.add_node("query_to_features", query_to_features_agent)
+       workflow.add_node("search_recipes", search_recipes)
+       workflow.add_node("extract_contents", extract_contents)
        # edges
-       workflow.set_entry_point("search")
-       workflow.add_edge("search", "extract")
-       workflow.add_edge("extract", "extract_weights")
-       workflow.add_edge("extract_weights", END)
+       workflow.set_conditional_entry_point(decide_entry_point)
+       workflow.add_edge("query_to_features", "search_recipes")
+       workflow.add_edge("search_recipes", "extract_contents")
+       workflow.add_edge("extract_contents", END)
       
-       return workflow.compile()
+       return workflow.compile() 
   
-   def run_search(self, query: str) -> dict:
+   def run_search(self, user_info: UserInfo | None = None, query: str | None = None) -> dict:
        try:
-           initial_state = {"query": query, "urls": [], "raw_contents": [], "top_deals": [], "previous_top_deal": None}
+           initial_state = {"query": query, "user_info": user_info, "recipe_search_urls": [], "recipe_contents": []}
            result = self.workflow.invoke(initial_state)
           
            return {
                "success": True,
-               "all_deals": result["top_deals"],
                "state": result
            }
           
@@ -50,15 +54,14 @@ class MasterAgent:
 def main():
    master = MasterAgent()
   
-   result = master.run_search("Apartment for rent in NYC, quiet neighborhood with low crime rate. Budget is $2000-2500 per month. 1 bedroom, 1 bathroom, and in-unit laundry. I really want to live next to my friend in the upper east side. There must be a park nearby and high ceilings.")
+#    result = master.run_search(query="I like unique burgers, Chinese food, and Italian food. I'm allergic to peanuts and need gluten-free recipes.")
+   result = master.run_search(user_info=UserInfo(preferences=["unique burgers", "Chinese food", "Italian food"], restrictions=["peanuts", "gluten-free"]))
 
    if result['success']:
-       print(f"Found {len(result['all_deals'])} cars")
-       
        # Save state to file
-       with open("state.txt", "w") as f:
+       with open("results.txt", "w") as f:
            json.dump(result['state'], f, indent=2, default=str)
-       print("State saved to state.txt")
+       print("State saved to results.txt")
    else:
        print(f"Error: {result['error']}")
 

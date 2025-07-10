@@ -1,52 +1,36 @@
-from typing import get_type_hints
-from agent_types import HouseFeatures, LLMResponse, State
+from typing import List, get_type_hints
+from agent_types import RecipeContent, State, UserInfo
 from setup import tavily_client
 import openai
 import json
-from util.normalize_weights import normalize_weights
 
-### 1. Search Agent
-def search_listings(state: State) -> State:
-   print(f"🔍 Search Agent: Starting search for '{state['query']}'")
-
-
-   result = tavily_client.search(query=state["query"])
-   state["urls"] = [res['url'] for res in result['results']]
-   return state
-
-
-### 2. Extract Agent
-def extract_contents(state: State) -> State:
-   print(f"📄 Extract Agent: Extracting content from {len(state['urls'])} URLs")
-   url_raw_contents = tavily_client.extract(urls=state["urls"])
-  
-   state["raw_contents"] = [data["raw_content"] for data in url_raw_contents["results"]]
-   return state
-
-
-def extract_user_weights(state: State) -> State:
-    print("🧠 LLM #1: Extracting feature weights from query")
-
-    house_features = [k for k in get_type_hints(HouseFeatures).keys() if k != "is_for_sale"]
+def query_to_features_agent(state: State) -> State:
+    print("🧠 LLM #1: Extracting features from query")
 
     system_prompt = (
-     "You are an assistant helping to analyze a user's housing preferences.\n\n"
-      f"You are given a fixed list of house features:\n{house_features}\n\n"
-      "Your task is to return a JSON object with two keys: `extra_features` and `feature_weights`.\n\n"
+     "You are a friendly recipe assistant. Your task is to parse user-provided food preferences and dietary restrictions.\n\n"
+     "- User input may include cuisine types, flavors, ingredients they like, plus allergies, diets, or dislikes.\n\n"
+     "- Return a JSON object with exactly two keys: \n"
+     "1. \"preferences\": an array of keywords or short descriptions about foods/cuisines/tastes.\n"
+     "2. \"restrictions\": an array of keywords or short descriptions about allergies, diets, or ingredients to avoid.\n\n"
 
-      "First, create `extra_features`: this is a dictionary containing any user preferences **not already represented** in the fixed house features. "
-      "Each key should be the name of an extra feature, and the value should be the appropriate Python type string (e.g., 'bool', 'int', 'str', 'float'). "
-      "If the user expresses no such extra preferences, return an empty dictionary.\n\n"
+     "Output requirements:\n"
+     "- Valid JSON only (no extra text).\n"
+     "- Each list may be empty, but must be present.\n"
+     "- Items should be concise (1–4 words or brief phrases).\n"
+     "- Do NOT include recipes—only parse user info.\n\n"
 
-      "Second, create `feature_weights`: this is a dictionary assigning an importance weight (from 0.0 to 1.0) to **every feature** the user cares about. "
-      "The keys in this dictionary must include all the fixed house features **and** any keys from `extra_features`. "
-      "The collective sum of ALL weights (from both the fixed house features and the extra features) must sum to exactly 1.0. Features not mentioned by the user should have a weight of 0.0.\n\n"
+      "Example:\n"
 
-      "Reminder: Every key in `extra_features` must also appear in `feature_weights`.\n\n"
-      "Return only a single JSON object with two keys: `extra_features` and `feature_weights`."
+     "User: \"I love spicy Thai and Mexican food, but I'm allergic to peanuts and need gluten-free recipes.\"\n"
+     "Output:\n"
+     "{\n"
+     "  \"preferences\": [\"spicy Thai\", \"Mexican\"],\n"
+     "  \"restrictions\": [\"peanut allergy\", \"gluten-free\"]\n"
+     "}"
    )
 
-    user_query = state["query"]
+    user_query = state.query
     response = openai.chat.completions.create(
         model="gpt-4.1-nano",
         messages=[
@@ -62,15 +46,63 @@ def extract_user_weights(state: State) -> State:
     content = content.strip()
 
     try:
-        results: LLMResponse = json.loads(content)
+        results: UserInfo = json.loads(content)
     except Exception as e:
         print("⚠️ Failed to parse LLM output:", e)
         raise
-
-    # Normalize weights in case the LLM returned weights that don't sum to 1.0
-    normalized_weights = normalize_weights(results["feature_weights"])
    
    
-    state["feature_weights"] = normalized_weights
-    state["extra_features"] = results["extra_features"]
+    state.user_info = results
     return state
+
+
+### Search Agent
+def search_recipes(state: State) -> State:
+   print(f"🔍 Search Agent")
+   if(state.user_info is None):
+      raise ValueError("User info is required")
+
+   # It is possible that a user does not have any preferences
+   recipe_preferences = ", ".join(state.user_info.preferences) if len(state.user_info.preferences) > 0 else ""
+   
+   result = tavily_client.search(
+      query=f"Newest {recipe_preferences} recipes with ingredients and instructions",
+      max_results=10,
+      time_range="day",
+      include_domains=["allrecipes.com", "foodnetwork.com", "gimmesomeoven.com"],
+   )
+   state.recipe_search_urls = [res['url'] for res in result['results']]
+
+   return state
+
+
+### Crawl Agent
+def extract_contents(state: State) -> State:
+   print(f"📄 Crawl Agent")
+   all_recipes: List[RecipeContent] = []
+
+
+   for url in state.recipe_search_urls:
+      print(f"\tCrawling {url}")
+      url_raw_contents = tavily_client.crawl(
+          url=url,
+         max_depth=1,
+         max_breadth=5,
+         limit=3,
+         select_paths=["/recipe/.*", "/recipes/.*"],
+         extract_depth="basic",
+         include_images=True
+      )
+      print(f"\t\t{url_raw_contents['results']}")
+      for entry in url_raw_contents['results']:
+        rc = RecipeContent(
+            raw_content=entry.get("raw_content", ""),
+            page_url=entry.get("url", ""),
+            image_url=entry.get("images", []) or []
+        )
+        all_recipes.append(rc)
+
+   state.recipe_contents = all_recipes
+   return state
+
+
