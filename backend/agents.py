@@ -1,5 +1,5 @@
-from typing import List, get_type_hints
-from agent_types import RecipeContent, State, UserInfo
+from typing import List
+from agent_types import ModifiedRecipeContent, RecipeContent, State, UserInfo
 from setup import tavily_client
 import openai
 import json
@@ -65,13 +65,18 @@ def search_recipes(state: State) -> State:
    # It is possible that a user does not have any preferences
    recipe_preferences = ", ".join(state.user_info.preferences) if len(state.user_info.preferences) > 0 else ""
    
-   result = tavily_client.search(
-      query=f"Newest {recipe_preferences} recipes with ingredients and instructions",
-      max_results=10,
-      time_range="day",
-      include_domains=["allrecipes.com", "foodnetwork.com", "gimmesomeoven.com"],
-   )
-   state.recipe_search_urls = [res['url'] for res in result['results']]
+   # result = tavily_client.search(
+   #    query=f"Newest {recipe_preferences} recipes with ingredients and instructions",
+   #    max_results=10,
+   #    time_range="day",
+   #    include_domains=["allrecipes.com", "foodnetwork.com", "gimmesomeoven.com"],
+   # )
+   # state.recipe_search_urls = [res['url'] for res in result['results']]
+
+   state.recipe_search_urls = [
+    "https://www.allrecipes.com/recipe/280256/super-salsa-burgers/",
+    "https://www.allrecipes.com/burger-king-frozen-cotton-candy-cloud-returns-11768513"
+  ]
 
    return state
 
@@ -93,7 +98,6 @@ def extract_contents(state: State) -> State:
          extract_depth="basic",
          include_images=True
       )
-      print(f"\t\t{url_raw_contents['results']}")
       for entry in url_raw_contents['results']:
         rc = RecipeContent(
             raw_content=entry.get("raw_content", ""),
@@ -106,3 +110,70 @@ def extract_contents(state: State) -> State:
    return state
 
 
+def recipe_modifier_agent(state: State) -> State:
+    print("🧠 LLM #2: Modifying recipes")
+
+    if(state.user_info is None):
+      raise ValueError("User info is required")
+
+    system_prompt = """
+      You are a recipe modification assistant. You are given:
+      - A list of RecipeContent objects, each with:
+      - raw_content: raw webpage text of a recipe
+      - page_url: the URL of the recipe
+      - image_url: optional image URLs
+      - A list of user restrictions (e.g., allergies, diets, ingredient exclusions)
+
+      Your task:
+      1. Identify the top 2 recipes that are easiest to modify while keeping their core intent, taste, and structure.
+      2. Modify those recipes to meet the restrictions by replacing problematic ingredients with reasonable alternatives (e.g., dairy -> oat milk).
+      3. Return 2 modified recipes in JSON format, each with:
+      {
+         "original_page_url": "<string>",
+         "modified_recipe_content": "<string>", # The modified recipe content in markdown format
+         "notes": "<brief explanation of what was changed and why>",
+         "image_url": "<list of image URLs>" # same as what you were given in the input data
+      }
+
+      Guidelines:
+      - Always substitute restricted ingredients rather than removing them.
+      - Choose substitutions that maintain the integrity of the original recipe.
+      - Adjust instructions as needed to reflect substitutions.
+      - Only include recipes that can be reasonably adapted.
+      - The modified recipe content should be in markdown format and include only the relevant information.
+      """
+
+    user_content = f"""
+      Here is the input data.
+
+      User restrictions:
+      {json.dumps(state.user_info.restrictions, indent=2)}
+
+      Recipes:
+      {[rc.model_dump_json(indent=2) for rc in state.recipe_contents]}
+   """
+
+    response = openai.chat.completions.create(
+        model="gpt-4.1-nano",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_content}
+        ],
+    )
+
+    content = response.choices[0].message.content
+
+    if content is None:
+        raise ValueError("No content in response")
+    content = content.strip()
+    
+    print(content)
+    try:
+        results: List[ModifiedRecipeContent] = json.loads(content)
+    except Exception as e:
+        print("⚠️ Failed to parse LLM output:", e)
+        raise
+   
+   
+    state.modified_recipe_contents = results
+    return state

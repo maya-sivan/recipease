@@ -1,6 +1,6 @@
 
 from typing import Literal
-from agents import extract_contents, query_to_features_agent, search_recipes
+from agents import extract_contents, query_to_features_agent, recipe_modifier_agent, search_recipes
 from agent_types import State, UserInfo
 from langgraph.graph import StateGraph, END, START
 import json
@@ -22,11 +22,13 @@ class MasterAgent:
        workflow.add_node("query_to_features", query_to_features_agent)
        workflow.add_node("search_recipes", search_recipes)
        workflow.add_node("extract_contents", extract_contents)
+       workflow.add_node("recipe_modifier", recipe_modifier_agent)
        # edges
        workflow.set_conditional_entry_point(decide_entry_point)
        workflow.add_edge("query_to_features", "search_recipes")
        workflow.add_edge("search_recipes", "extract_contents")
-       workflow.add_edge("extract_contents", END)
+       workflow.add_edge("extract_contents", "recipe_modifier")
+       workflow.add_edge("recipe_modifier", END)
       
        return workflow.compile() 
   
@@ -58,10 +60,11 @@ def main():
    result = master.run_search(user_info=UserInfo(preferences=["unique burgers", "Chinese food", "Italian food"], restrictions=["peanuts", "gluten-free"]))
 
    if result['success']:
+       print(result['state'].modified_recipe_contents)
        # Save state to file
-       with open("results.txt", "w") as f:
-           json.dump(result['state'], f, indent=2, default=str)
-       print("State saved to results.txt")
+       with open("final_results.txt", "w") as f:
+           f.write(result['state'].model_dump_json(indent=2))
+       print("State saved to final_results.txt")
    else:
        print(f"Error: {result['error']}")
 
