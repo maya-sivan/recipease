@@ -1,5 +1,5 @@
 from typing import List
-from agent_types import ModifiedRecipeContent, RecipeContent, State, UserInfo
+from custom_types.agent_types import ModifiedRecipeContent, RawRecipeContent, State, UserInfo
 from setup import tavily_client
 import openai
 import json
@@ -84,7 +84,7 @@ def search_recipes(state: State) -> State:
 ### Crawl Agent
 def extract_contents(state: State) -> State:
    print(f"📄 Crawl Agent")
-   all_recipes: List[RecipeContent] = []
+   all_recipes: List[RawRecipeContent] = []
 
 
    for url in state.recipe_search_urls:
@@ -99,10 +99,10 @@ def extract_contents(state: State) -> State:
          include_images=True
       )
       for entry in url_raw_contents['results']:
-        rc = RecipeContent(
+        rc = RawRecipeContent(
             raw_content=entry.get("raw_content", ""),
             page_url=entry.get("url", ""),
-            image_url=entry.get("images", []) or []
+            image_urls=entry.get("images", []) or []
         )
         all_recipes.append(rc)
 
@@ -121,33 +121,45 @@ def recipe_modifier_agent(state: State) -> State:
       - A list of RecipeContent objects, each with:
       - raw_content: raw webpage text of a recipe
       - page_url: the URL of the recipe
-      - image_url: optional image URLs
+      - image_urls: optional image URLs
       - A list of user restrictions (e.g., allergies, diets, ingredient exclusions)
+      - A list of user preferences (e.g., cuisine types, flavors, ingredients they like, which meal of the day it is, etc.)
 
       Your task:
       1. Identify the top 2 recipes that are easiest to modify while keeping their core intent, taste, and structure.
       2. Modify those recipes to meet the restrictions by replacing problematic ingredients with reasonable alternatives (e.g., dairy -> oat milk).
-      3. Return 2 modified recipes in JSON format, each with:
+      3. Return a valid **JSON array** containing exactly 2 objects representing the modified recipes.
+
+      Each recipe object must follow this exact structure:
+
       {
-         "original_page_url": "<string>",
-         "modified_recipe_content": "<string>", # The modified recipe content in markdown format
-         "notes": "<brief explanation of what was changed and why>",
-         "image_url": "<list of image URLs>" # same as what you were given in the input data
+      "original_page_url": "<string>",                 // same as input page_url
+      "modified_recipe_content": "<string>",           // The modified recipe in Markdown format (escaped properly)
+      "notes": "<string>",                             // A brief explanation of what was changed and why
+      "image_url": "<string>",                         // Best image from image_urls or raw_content
+      "recipe_title": "<string>",                      // Use the title if available, otherwise make a short 2–5 word title
+      "relevant_preferences": ["<string>", ...]        // Only user preferences that are satisfied by the recipe; must be a subset (no made-up values) of the input user preferences
       }
 
       Guidelines:
-      - Always substitute restricted ingredients rather than removing them.
-      - Choose substitutions that maintain the integrity of the original recipe.
-      - Adjust instructions as needed to reflect substitutions.
+      - The output must be valid JSON that can be parsed with json.loads().
+      - The "modified_recipe_content" value must be a properly escaped string in Markdown format (e.g., use `\\n` for line breaks, `\"` for quotes).
+      - modified_recipe_content should not include recipe title, notes, or images urls since these values will be included as keys in the JSON object.
+      - Always substitute restricted ingredients instead of removing them.
+      - Choose substitutions that maintain the flavor and intent of the original recipe.
       - Only include recipes that can be reasonably adapted.
-      - The modified recipe content should be in markdown format and include only the relevant information.
+      - Ensure all fields are present in each object — missing keys or additional fields are not allowed.
       """
+
 
     user_content = f"""
       Here is the input data.
 
       User restrictions:
       {json.dumps(state.user_info.restrictions, indent=2)}
+
+      User preferences:
+      {json.dumps(state.user_info.preferences, indent=2)}
 
       Recipes:
       {[rc.model_dump_json(indent=2) for rc in state.recipe_contents]}
@@ -167,13 +179,12 @@ def recipe_modifier_agent(state: State) -> State:
         raise ValueError("No content in response")
     content = content.strip()
     
-    print(content)
     try:
         results: List[ModifiedRecipeContent] = json.loads(content)
     except Exception as e:
-        print("⚠️ Failed to parse LLM output:", e)
+        print(f"⚠️ Failed to parse LLM output: {e}")
+        print(f"LLM #2 Content: {content}")
         raise
-   
    
     state.modified_recipe_contents = results
     return state
