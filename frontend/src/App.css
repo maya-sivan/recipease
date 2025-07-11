@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+:root {
+	font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+	line-height: 1.5;
+	font-weight: 400;
+
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+body {
+	margin: 0;
+	min-width: 320px;
+	min-height: 100vh;
+}
+
+/* Override Ant Design dark theme for Menu */
+.ant-menu {
+	background-color: #fff !important;
+}
+
+.ant-menu-item {
+	background-color: #fff !important;
+}
+
+.ant-menu-item:hover {
+	background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+.ant-menu-item-selected {
+	background-color: #e6f7ff !important;
+}
+
+.ant-layout-sider {
+	background-color: #fff !important;
+}
+
+/* Tooltip styling to match Ant Design blue */
+.ant-tooltip {
+	background-color: #69b4fa !important;
+}
+
+.ant-tooltip-inner {
+	background-color: #69b4fa !important;
+	color: #fff !important;
+}
+
+.ant-tooltip-arrow::before {
+	background-color: #69b4fa !important;
+}
