@@ -1,9 +1,8 @@
-from typing import List
-from custom_types.agent_types import ModifiedRecipeContent, RawRecipeContent, State, UserInfo
-from helpers.db_utils import save_query_to_db, save_recipes_to_db
-from setup import tavily_client
-import openai
+from ..custom_types.agent_types import ModifiedRecipeContent, State, UserInfo
 import json
+import openai
+
+
 
 def query_to_features_agent(state: State) -> State:
     print("🧠 LLM #1: Extracting features from query")
@@ -55,55 +54,6 @@ def query_to_features_agent(state: State) -> State:
    
     state.user_info = results
     return state  
-
-
-### Search Agent
-def search_recipes(state: State) -> State:
-   print(f"🔍 Search Agent")
-   if(state.user_info is None):
-      raise ValueError("User info is required")
-
-   # It is possible that a user does not have any preferences
-   recipe_preferences = ", ".join(state.user_info.preferences) if len(state.user_info.preferences) > 0 else ""
-   
-   result = tavily_client.search(
-      query=f"Newest {recipe_preferences} recipes with ingredients and instructions",
-      max_results=4,
-      time_range="day",
-      include_domains=["allrecipes.com", "foodnetwork.com", "gimmesomeoven.com"],
-   )
-   state.recipe_search_urls = [res['url'] for res in result['results']]
-
-   return state
-
-
-### Crawl Agent
-def extract_contents(state: State) -> State:
-   print(f"📄 Crawl Agent")
-   all_recipes: List[RawRecipeContent] = []
-
-
-   for url in state.recipe_search_urls:
-      print(f"\tCrawling {url}")
-      url_raw_contents = tavily_client.crawl(
-          url=url,
-         max_depth=1,
-         max_breadth=5,
-         limit=3,
-         select_paths=["/recipe/.*", "/recipes/.*"],
-         extract_depth="basic",
-         include_images=True
-      )
-      for entry in url_raw_contents['results']:
-        rc = RawRecipeContent(
-            raw_content=entry.get("raw_content", ""),
-            page_url=entry.get("url", ""),
-            image_urls=entry.get("images", []) or []
-        )
-        all_recipes.append(rc)
-
-   state.recipe_contents = all_recipes
-   return state
 
 
 def recipe_modifier_agent(state: State) -> State:
@@ -226,23 +176,3 @@ def recipe_modifier_agent(state: State) -> State:
    
     state.modified_recipe_contents = results
     return state
-
-
-def save_data_to_db(state: State) -> State:
-      print("💾 Saving data to db")
-
-      if(state.query is None):
-         raise ValueError("Query is required")
-      if(state.user_info is None):
-         raise ValueError("User info is required")
-      if(state.user_email is None):
-         raise ValueError("User email is required")
-
-      if(state.is_new_query):
-         state.query_id = save_query_to_db(query=state.query, user_info=state.user_info, user_email=state.user_email)
-
-      if(state.query_id is None):
-         raise ValueError("Query id is required")
-
-      save_recipes_to_db(query_id=state.query_id, recipes=state.modified_recipe_contents, restrictions=state.user_info.restrictions)
-      return state

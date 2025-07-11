@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List
 from pydantic import BaseModel
 
-from custom_types.agent_types import ModifiedRecipeContent, UserInfo
+from .agent_types import ModifiedRecipeContent, UserInfo
 
 class Query(BaseModel):
    user_email: str
