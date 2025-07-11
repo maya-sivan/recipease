@@ -1,42 +1,53 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+@import "tailwindcss";
+
+:root {
+	font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+	line-height: 1.5;
+	font-weight: 400;
+
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+body {
+	margin: 0;
+	min-width: 320px;
+	min-height: 100vh;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Override Ant Design dark theme for Menu */
+.ant-menu {
+	background-color: #fff !important;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.ant-menu-item {
+	background-color: #fff !important;
 }
 
-.card {
-  padding: 2em;
+.ant-menu-item:hover {
+	background-color: rgba(0, 0, 0, 0.04) !important;
 }
 
-.read-the-docs {
-  color: #888;
+.ant-menu-item-selected {
+	background-color: #e6f7ff !important;
+}
+
+.ant-layout-sider {
+	background-color: #fff !important;
+}
+
+/* Tooltip styling to match Ant Design blue */
+.ant-tooltip {
+	background-color: #69b4fa !important;
+}
+
+.ant-tooltip-inner {
+	background-color: #69b4fa !important;
+	color: #fff !important;
+}
+
+.ant-tooltip-arrow::before {
+	background-color: #69b4fa !important;
 }
