@@ -4,10 +4,20 @@ from dotenv import dotenv_values
 from pymongo import MongoClient
 from .routers.recipes import recipe_router
 from .routers.queries import query_router
+from fastapi.middleware.cors import CORSMiddleware
+
 
 config = dotenv_values(".env")
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[config['FRONTEND_URL']],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 def startup_db_client():

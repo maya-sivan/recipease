@@ -5,7 +5,7 @@ from typing import List
 
 query_router = APIRouter()
 
-@query_router.get("/", response_description="List all queries", response_model=List[Query])
+@query_router.get("/all", response_description="List all queries", response_model=List[Query])
 def list_queries(request: Request):
     queries = list(request.app.database["queries"].find(limit=3))
     return queries
