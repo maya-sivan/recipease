@@ -2,8 +2,7 @@ from datetime import datetime
 from typing import List
 
 from shared.db import queries_collection, recipes_collection
-from ..custom_types.agent_types import ModifiedRecipeContent, UserInfo
-from ..custom_types.entity_types import Query, Recipe
+from shared.models import ModifiedRecipeContent, UserInfo, Query, Recipe
 
 
 def save_query_to_db(query: str, user_info: UserInfo, user_email: str) -> str:

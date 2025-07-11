@@ -1,4 +1,5 @@
-from ..custom_types.agent_types import ModifiedRecipeContent, State, UserInfo
+from ..custom_types.agent_types import State
+from shared.models import ModifiedRecipeContent, UserInfo
 import json
 import openai
 

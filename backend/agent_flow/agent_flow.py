@@ -1,8 +1,8 @@
 
 from typing import Literal
 from shared.db import queries_collection
-from .custom_types.entity_types import Query
 from .custom_types.agent_types import State
+from shared.models import Query
 from langgraph.graph import StateGraph, END
 from bson import ObjectId
 from .agents.llms import query_to_features_agent, recipe_modifier_agent
