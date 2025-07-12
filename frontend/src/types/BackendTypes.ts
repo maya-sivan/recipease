@@ -26,3 +26,20 @@ export type ModifiedRecipeContent = {
 	recipe_title: string;
 	relevant_preferences: string[];
 };
+
+export enum BgJobStatus {
+	Pending = "pending",
+	Running = "running",
+	Completed = "completed",
+	Failed = "failed",
+}
+
+export type BgJob = {
+	job_id: string;
+	status: BgJobStatus;
+	created_at: Date;
+	started_at: Date;
+	completed_at: Date;
+	user_email: string;
+	query: string;
+};

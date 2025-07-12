@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import Enum
 from typing import List
 from pydantic import BaseModel, Field, field_validator
 from bson import ObjectId
@@ -63,3 +64,23 @@ class QueryResponse(Query):
 
     class Config:
         json_encoders = {ObjectId: str}
+
+
+class JobRequest(BaseModel):
+    user_email: str
+    query: str
+
+class BgJobStatus(str, Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+class BgJob(BaseModel):
+    job_id: str
+    status: BgJobStatus
+    created_at: datetime
+    started_at: datetime
+    completed_at: datetime
+    user_email: str
+    query: str
