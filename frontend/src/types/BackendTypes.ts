@@ -1,4 +1,5 @@
 export type Query = {
+	_id: string;
 	user_email: string;
 	query: string;
 	user_info: UserInfo;
@@ -7,7 +8,7 @@ export type Query = {
 
 export type Recipe = {
 	query_id: string;
-	recipe_content: string;
+	recipe_content: ModifiedRecipeContent;
 	restrictions: string[];
 	found_at: Date;
 };

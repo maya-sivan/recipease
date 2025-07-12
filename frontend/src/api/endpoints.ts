@@ -1,5 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { getAllRecipes } from "./api-functions";
+import {
+	getAllQueries,
+	getAllRecipes,
+	getQueryById,
+	getRecipesByQueryId,
+} from "./api-functions";
 
 function useAllRecipes() {
 	return useQuery({
@@ -8,4 +13,30 @@ function useAllRecipes() {
 	});
 }
 
-export { useAllRecipes };
+function useAllQueries() {
+	return useQuery({
+		queryKey: ["queries"],
+		queryFn: getAllQueries,
+	});
+}
+
+function useGetQueryById(id: string) {
+	return useQuery({
+		queryKey: ["query", id],
+		queryFn: () => getQueryById(id),
+	});
+}
+
+function useGetRecipesByQueryId(queryId: string) {
+	return useQuery({
+		queryKey: ["recipes", queryId],
+		queryFn: () => getRecipesByQueryId(queryId),
+	});
+}
+
+export {
+	useAllRecipes,
+	useAllQueries,
+	useGetQueryById,
+	useGetRecipesByQueryId,
+};

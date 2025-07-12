@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import List
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
+from bson import ObjectId
+
 
 
 class UserInfo(BaseModel):
@@ -45,3 +47,19 @@ class Recipe(BaseModel):
     recipe_content: ModifiedRecipeContent
     restrictions: List[str]
     found_at: datetime
+
+
+class QueryResponse(Query):
+    id: str = Field(..., alias="_id")
+
+    @field_validator("id", mode="before")
+    @classmethod
+    def validate_object_id(cls, v):
+        if isinstance(v, ObjectId):
+            return str(v)
+        if isinstance(v, str):
+            return v
+        raise ValueError(f"Invalid ObjectId: {v}")
+
+    class Config:
+        json_encoders = {ObjectId: str}
