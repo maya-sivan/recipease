@@ -6,21 +6,22 @@ import {
 import { Alert, Drawer, FloatButton, Spin } from "antd";
 import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
-import { useGetQueryBgJob } from "../api";
-import { bgJobAtom } from "../atoms/bgJobAtom";
+import { useGetBgJob } from "../api";
+import { bgJobIdAtom } from "../atoms/bgJobAtom";
 import { BgJobStatus } from "../types/BackendTypes";
 
-export function BackgroundJobPanel({ bgJobId }: { bgJobId: string }) {
-	const [open, setOpen] = useState(true);
+export function BackgroundJobPanel() {
+	const [bgJobId, setBgJobId] = useAtom(bgJobIdAtom);
+	const { data: bgJob, isPending, isLoading, isError } = useGetBgJob(bgJobId);
+	console.log("bgJob", bgJob);
+	const [open, setOpen] = useState(!!bgJob);
+	if (!bgJob) return null;
 
-	const { data: bgJob, isLoading: isLoadingBgJob } = useGetQueryBgJob(bgJobId);
-	const [, setBgJobId] = useAtom(bgJobAtom);
-
-	useEffect(() => {
-		if (bgJob?.status === BgJobStatus.Completed) {
-			setBgJobId(null);
-		}
-	}, [bgJob, setBgJobId]);
+	// useEffect(() => {
+	// 	if (bgJob?.status === BgJobStatus.Completed) {
+	// 		setBgJobId(null);
+	// 	}
+	// }, [bgJob, setBgJobId]);
 
 	const { status } = bgJob || {};
 
@@ -30,12 +31,12 @@ export function BackgroundJobPanel({ bgJobId }: { bgJobId: string }) {
 			<SyncOutlined />
 		) : status === BgJobStatus.Completed ? (
 			<CheckCircleOutlined />
-		) : (
+		) : status === BgJobStatus.Failed || isError ? (
 			<CloseCircleOutlined />
-		);
+		) : null;
 
 	const renderContent = () => {
-		if (isLoadingBgJob) return <Spin tip="Checking..." />;
+		if (isPending || isLoading) return <Spin tip="Checking..." />;
 		if (status === BgJobStatus.Running) return <Spin tip="Job is running..." />;
 		if (status === BgJobStatus.Completed)
 			return <Alert message="Job completed" type="success" showIcon />;

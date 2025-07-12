@@ -2,8 +2,8 @@ import { Button, Spin } from "antd";
 import { useAtom } from "jotai";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAllQueries } from "../../api";
-import { bgJobAtom } from "../../atoms/bgJobAtom";
+import { useAllQueries, useGetBgJob } from "../../api";
+import { bgJobIdAtom } from "../../atoms/bgJobAtom";
 import { ROUTES } from "../../constants/routes";
 import { BackgroundJobPanel } from "../BgJobPanel";
 import { CreateNewQueryModal } from "./CreateNewQueryModal";
@@ -14,7 +14,6 @@ export function RequestsPage() {
 	const navigate = useNavigate();
 	const [isCreateNewQueryModalOpen, setIsCreateNewQueryModalOpen] =
 		useState(false);
-	const [bgJobId] = useAtom(bgJobAtom);
 	if (isLoading) return <Spin />;
 	return (
 		<div>
@@ -33,7 +32,7 @@ export function RequestsPage() {
 					/>
 				))}
 			</div>
-			{!!bgJobId && <BackgroundJobPanel bgJobId={bgJobId.jobId} />}
+			<BackgroundJobPanel />
 			<CreateNewQueryModal
 				open={isCreateNewQueryModalOpen}
 				onCancel={() => setIsCreateNewQueryModalOpen(false)}

@@ -37,7 +37,7 @@ async function getRecipesByQueryId(queryId: string): Promise<Recipe[]> {
 async function createNewQueryBgJob(
 	userEmail: string,
 	query: string,
-): Promise<{ jobId: string }> {
+): Promise<{ job_id: string }> {
 	const response = await fetch(`${BACKEND_API_URL}/query/create-new-bg-job`, {
 		method: "POST",
 		headers: {

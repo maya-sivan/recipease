@@ -10,12 +10,12 @@ export function CreateNewQueryModal({
 }) {
 	const [form] = Form.useForm();
 
-	const startNewQueryBgJob = useStartNewQueryBgJob();
+	const { mutate: startNewQueryBgJob, isPending } = useStartNewQueryBgJob();
 
 	const handleOk = async () => {
 		try {
 			const values = await form.validateFields();
-			startNewQueryBgJob.mutate({
+			startNewQueryBgJob({
 				userEmail: "mayasivannj@gmail.com",
 				query: values.query,
 			});
@@ -30,7 +30,7 @@ export function CreateNewQueryModal({
 			open={open}
 			onCancel={onCancel}
 			onOk={handleOk}
-			confirmLoading={startNewQueryBgJob.isPending}
+			confirmLoading={isPending}
 		>
 			<Form form={form} layout="vertical">
 				<Form.Item

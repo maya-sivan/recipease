@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
-import { bgJobAtom } from "../atoms/bgJobAtom";
+import { bgJobIdAtom } from "../atoms/bgJobAtom";
 import {
 	createNewQueryBgJob,
 	getAllQueries,
@@ -38,20 +38,23 @@ function useGetRecipesByQueryId(queryId: string) {
 	});
 }
 
-function useStartNewQueryBgJob() {
-	const [, setJobId] = useAtom(bgJobAtom);
-	return useMutation({
-		mutationFn: ({ userEmail, query }: { userEmail: string; query: string }) =>
-			createNewQueryBgJob(userEmail, query),
-		onSuccess: (id) => setJobId({ jobId: id.jobId }),
+function useGetBgJob(jobId: string | undefined) {
+	return useQuery({
+		queryKey: ["bgJob", jobId],
+		queryFn: () => getBgJob(jobId || ""),
+		enabled: !!jobId,
 	});
 }
 
-function useGetQueryBgJob(jobId: string) {
-	return useQuery({
-		queryKey: ["jobStatus", jobId],
-		queryFn: () => getBgJob(jobId),
-		refetchInterval: 2000,
+function useStartNewQueryBgJob() {
+	const [, setBgJobId] = useAtom(bgJobIdAtom);
+	return useMutation({
+		mutationFn: ({ userEmail, query }: { userEmail: string; query: string }) =>
+			createNewQueryBgJob(userEmail, query),
+		onSuccess: ({ job_id: jobId }) => {
+			console.log("setting bg job Id to ", jobId);
+			setBgJobId(jobId);
+		},
 	});
 }
 
@@ -60,6 +63,6 @@ export {
 	useAllQueries,
 	useGetQueryById,
 	useGetRecipesByQueryId,
-	useGetQueryBgJob,
+	useGetBgJob,
 	useStartNewQueryBgJob,
 };

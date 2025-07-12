@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel, Field, field_validator
 from bson import ObjectId
 
@@ -81,6 +81,6 @@ class BgJob(BaseModel):
     status: BgJobStatus
     created_at: datetime
     started_at: datetime
-    completed_at: datetime
+    completed_at: Optional[datetime] = None
     user_email: str
     query: str

@@ -5,8 +5,10 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import "antd/dist/reset.css";
 import "./app.css";
+import { Provider as JotaiProvider } from "jotai";
 import { AboutPage, RecipesPage, RequestsPage } from "./components";
 import AppLayout from "./components/AppLayout";
+import { globalAtomStore } from "./components/context/global-atom-store";
 import { QueryPage } from "./components/Queries/QueryPage";
 import { ROUTES } from "./constants/routes";
 
@@ -29,7 +31,9 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 	<React.StrictMode>
 		<QueryClientProvider client={queryClient}>
-			<RouterProvider router={router} />
+			<JotaiProvider store={globalAtomStore}>
+				<RouterProvider router={router} />
+			</JotaiProvider>
 		</QueryClientProvider>
 	</React.StrictMode>,
 );
