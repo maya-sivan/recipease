@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getAllRecipes } from "./api-functions";
+import { getAllQueries, getAllRecipes } from "./api-functions";
 
 function useAllRecipes() {
 	return useQuery({
@@ -8,4 +8,11 @@ function useAllRecipes() {
 	});
 }
 
-export { useAllRecipes };
+function useAllQueries() {
+	return useQuery({
+		queryKey: ["queries"],
+		queryFn: getAllQueries,
+	});
+}
+
+export { useAllRecipes, useAllQueries };
