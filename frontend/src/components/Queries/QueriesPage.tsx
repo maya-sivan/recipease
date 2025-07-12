@@ -1,15 +1,13 @@
-import { Spin, Typography } from "antd";
-import { useState } from "react";
+import { Spin } from "antd";
+import { useNavigate } from "react-router-dom";
 import { useAllQueries } from "../../api";
-import type { Query } from "../../types";
+import { ROUTES } from "../../constants/routes";
 import { QueryCard } from "./QueryCard";
-import { QueryModal } from "./QueryPage";
 
 export function RequestsPage() {
 	const { data, isLoading } = useAllQueries();
-	const [selectedQuery, setSelectedQuery] = useState<string | null>(null);
+	const navigate = useNavigate();
 	if (isLoading) return <Spin />;
-
 	return (
 		<div className="flex flex-wrap gap-4">
 			{data?.map((query, index) => (
@@ -18,7 +16,7 @@ export function RequestsPage() {
 					query={query}
 					className="w-150 h-90"
 					onClick={() => {
-						setSelectedQuery(index); // TODO ref query id
+						navigate(`${ROUTES.queries}/${query._id}`);
 					}}
 				/>
 			))}

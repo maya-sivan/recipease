@@ -1,4 +1,5 @@
 export type Query = {
+	_id: string;
 	user_email: string;
 	query: string;
 	user_info: UserInfo;

@@ -1,4 +1,4 @@
-import type { ModifiedRecipeContent, Query, Recipe } from "../types";
+import type { Query, Recipe } from "../types";
 
 const BACKEND_API_URL = import.meta.env.VITE_BACKEND_API_URL;
 
@@ -18,4 +18,19 @@ async function getAllQueries(): Promise<Query[]> {
 	return await response.json();
 }
 
-export { getAllRecipes, getAllQueries };
+async function getQueryById(id: string): Promise<Query> {
+	const response = await fetch(`${BACKEND_API_URL}/query/${id}`);
+	if (!response.ok) {
+		throw new Error("Failed to fetch query");
+	}
+	return await response.json();
+}
+
+async function getRecipesByQueryId(queryId: string): Promise<Recipe[]> {
+	const response = await fetch(`${BACKEND_API_URL}/recipe/by-query/${queryId}`);
+	if (!response.ok) {
+		throw new Error("Failed to fetch recipes");
+	}
+	return await response.json();
+}
+export { getAllRecipes, getAllQueries, getQueryById, getRecipesByQueryId };

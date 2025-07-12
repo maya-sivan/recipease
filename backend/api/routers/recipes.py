@@ -19,3 +19,8 @@ def find_recipe(id: str, request: Request):
         return recipe
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Recipe with ID {id} not found")
 
+@recipe_router.get("/by-query/{query_id}", response_description="Get recipes by query id", response_model=List[Recipe])
+def find_recipes_by_query_id(query_id: str, request: Request):
+    if (recipes := list(request.app.database["recipes"].find({"query_id": query_id}))) is not None:
+        return recipes
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Recipes with query ID {query_id} not found")

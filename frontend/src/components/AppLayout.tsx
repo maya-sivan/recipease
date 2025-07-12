@@ -7,22 +7,23 @@ import { Layout, Menu, Typography } from "antd";
 import type React from "react";
 import { useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { ROUTES } from "../constants/routes";
 
 const { Content, Sider, Header } = Layout;
 
 const menuItems = [
 	{
-		key: "/all-recipes",
+		key: ROUTES.recipes,
 		icon: <HomeOutlined />,
 		label: "Recipes",
 	},
 	{
-		key: "/all-requests",
+		key: ROUTES.queries,
 		icon: <UnorderedListOutlined />,
 		label: "Requests",
 	},
 	{
-		key: "/about",
+		key: ROUTES.about,
 		icon: <InfoCircleOutlined />,
 		label: "About",
 	},
@@ -34,7 +35,7 @@ const AppLayout: React.FC = () => {
 	const location = useLocation();
 
 	const currentPath =
-		location.pathname === "/" ? "/all-recipes" : location.pathname;
+		location.pathname === "/" ? ROUTES.recipes : location.pathname;
 
 	return (
 		<Layout style={{ minHeight: "100vh" }}>
