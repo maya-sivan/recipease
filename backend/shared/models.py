@@ -1,5 +1,6 @@
 from datetime import datetime
-from typing import List
+from enum import Enum
+from typing import List, Optional
 from pydantic import BaseModel, Field, field_validator
 from bson import ObjectId
 
@@ -33,7 +34,8 @@ class ModifiedRecipeContent(BaseModel):
         if isinstance(v, str):
             return [v]
         return v
-
+class ModifiedRecipeContentList(BaseModel):
+    modified_recipe_contents: List[ModifiedRecipeContent]
 
 class Query(BaseModel):
    user_email: str
@@ -63,3 +65,32 @@ class QueryResponse(Query):
 
     class Config:
         json_encoders = {ObjectId: str}
+
+
+class JobRequest(BaseModel):
+    user_email: str
+    query: str
+
+class BgJobStatus(str, Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+class BgJob(BaseModel):
+    job_id: str
+    status: BgJobStatus
+    created_at: datetime
+    started_at: datetime
+    completed_at: Optional[datetime] = None
+    user_email: str
+    query: str
+    is_resolved: bool = False
+
+class UpdateBgJob(BaseModel):
+    class Config:
+        all_optional = True
+
+
+class UpdateResolvedStatus(BaseModel):
+    is_user_resolved: bool

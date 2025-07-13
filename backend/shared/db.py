@@ -11,6 +11,7 @@ db = mongo_client["tavily_db"]
 
 queries_collection = db["queries"]
 recipes_collection = db["recipes"]
+background_tasks_collection = db["background_tasks"]
 
 # query_object = Query(
 #     query="I like unique burgers, Chinese food, and Italian food. I'm allergic to peanuts and need gluten-free recipes.", 

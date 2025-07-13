@@ -1,15 +1,15 @@
 from typing import List
 from pydantic import BaseModel
-
 from shared.models import ModifiedRecipeContent, UserInfo
+from langgraph.prebuilt.chat_agent_executor import AgentStateWithStructuredResponse
+
 
 class RawRecipeContent(BaseModel):
    raw_content: str
    page_url: str
    image_urls: List[str] = []
 
-
-class State(BaseModel):
+class State(AgentStateWithStructuredResponse):
    is_new_query: bool = False
    user_email: str | None = None
    query_id: str | None = None
@@ -18,4 +18,3 @@ class State(BaseModel):
    recipe_search_urls: List[str]
    recipe_contents: List[RawRecipeContent]
    modified_recipe_contents: List[ModifiedRecipeContent] = []
-   

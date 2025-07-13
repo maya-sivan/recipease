@@ -8,6 +8,7 @@ import type React from "react";
 import { useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { ROUTES } from "../constants/routes";
+import { BackgroundJobPanel } from "./BgJobPanel";
 
 const { Content, Sider, Header } = Layout;
 
@@ -74,6 +75,7 @@ const AppLayout: React.FC = () => {
 						borderRadius: "10px",
 					}}
 				>
+					<BackgroundJobPanel />
 					<Outlet />
 				</Content>
 			</Layout>
