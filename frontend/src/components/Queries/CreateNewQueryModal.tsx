@@ -1,4 +1,5 @@
-import { Form, Input, Modal } from "antd";
+import { Form, Modal, Typography } from "antd";
+import TextArea from "antd/es/input/TextArea";
 import { useStartNewQueryBgJob } from "../../api";
 
 export function CreateNewQueryModal({
@@ -39,14 +40,23 @@ export function CreateNewQueryModal({
 			onCancel={onCancel}
 			onOk={handleOk}
 			confirmLoading={isPending}
+			okText="Create"
+			cancelText="Cancel"
 		>
+			<Typography.Paragraph>
+				Please enter your food preferences and restrictions. Your query will be
+				saved and start generating relevant recipes on a daily basis!
+			</Typography.Paragraph>
 			<Form form={form} layout="vertical">
 				<Form.Item
 					label="Query"
 					name="query"
 					rules={[{ required: true, message: "Please enter a query" }]}
 				>
-					<Input placeholder="e.g. Find apartments in NYC" />
+					<TextArea
+						placeholder="e.g. I want to eat pancakes but I'm gluten-free"
+						className="overflow-y-scroll h-40 break-all"
+					/>
 				</Form.Item>
 			</Form>
 		</Modal>
