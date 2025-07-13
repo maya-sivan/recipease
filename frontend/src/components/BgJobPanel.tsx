@@ -22,7 +22,6 @@ export function BackgroundJobPanel() {
 		limit: 5,
 	});
 
-	console.log(tableParams);
 	const filters = { is_resolved: false };
 	const {
 		data: unresolvedBgJobs,
@@ -39,6 +38,7 @@ export function BackgroundJobPanel() {
 	const [open, setOpen] = useState(
 		!!unresolvedBgJobs && unresolvedBgJobs.length > 0,
 	);
+
 	if (!unresolvedBgJobs || unresolvedBgJobs.length === 0) return null;
 
 	const allJobsCompleted = unresolvedBgJobs.every(
@@ -111,25 +111,6 @@ export function BackgroundJobPanel() {
 		},
 	];
 
-	const renderContent = () => {
-		if (isPending || isLoading) return <Spin tip="Checking..." />;
-		return (
-			<Table
-				dataSource={unresolvedBgJobs}
-				columns={columns}
-				pagination={{
-					pageSize: tableParams.limit,
-					hideOnSinglePage: true,
-					total: bgJobsCount,
-					onChange: (page, pageSize) => {
-						setTableParams({ skip: (page - 1) * pageSize, limit: pageSize });
-					},
-					pageSizeOptions: [5, 10, 20, 50, 100],
-				}}
-			/>
-		);
-	};
-
 	return (
 		<>
 			<Drawer
@@ -142,7 +123,27 @@ export function BackgroundJobPanel() {
 				}}
 				closable
 			>
-				{renderContent()}
+				{isPending || isLoading ? (
+					<Spin tip="Checking..." />
+				) : (
+					<Table
+						dataSource={unresolvedBgJobs}
+						columns={columns}
+						pagination={{
+							pageSize: tableParams.limit,
+							hideOnSinglePage: true,
+							total: bgJobsCount,
+							onChange: (page, pageSize) => {
+								setTableParams({
+									skip: (page - 1) * pageSize,
+									limit: pageSize,
+								});
+							},
+							pageSizeOptions: [5, 10, 20, 50, 100],
+						}}
+						rowKey="job_id"
+					/>
+				)}
 			</Drawer>
 
 			{!open && (

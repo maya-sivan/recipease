@@ -89,6 +89,7 @@ function useGetAllBgJobs({
 	return useQuery({
 		queryKey: ["bgJobs", filters, tableParams],
 		queryFn: () => getAllBgJobs({ filters, tableParams }),
+		placeholderData: (prev) => prev, // keep previous data for pagination
 	});
 }
 
