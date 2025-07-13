@@ -2,12 +2,14 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { unresolvedBgJobIdAtom } from "../atoms/bgJobAtom";
 import { queryClient } from "../main";
+import type { DataQueryParams } from "../types";
 import {
 	createNewQueryBgJob,
 	getAllBgJobs,
 	getAllQueries,
 	getAllRecipes,
 	getBgJob,
+	getBgJobsCount,
 	getQueryById,
 	getRecipesByQueryId,
 	updateBgJobResolved,
@@ -77,10 +79,23 @@ function useUpdateBgJobResolved() {
 	});
 }
 
-function useGetAllBgJobs(query: Record<string, unknown>) {
+function useGetAllBgJobs({
+	filters,
+	tableParams,
+}: {
+	filters: Record<string, unknown>;
+	tableParams: DataQueryParams;
+}) {
 	return useQuery({
-		queryKey: ["bgJobs", query],
-		queryFn: () => getAllBgJobs(query),
+		queryKey: ["bgJobs", filters, tableParams],
+		queryFn: () => getAllBgJobs({ filters, tableParams }),
+	});
+}
+
+function useGetBgJobsCount(filters: Record<string, unknown>) {
+	return useQuery({
+		queryKey: ["bgJobsCount", filters],
+		queryFn: () => getBgJobsCount(filters),
 	});
 }
 
@@ -93,4 +108,5 @@ export {
 	useStartNewQueryBgJob,
 	useUpdateBgJobResolved,
 	useGetAllBgJobs,
+	useGetBgJobsCount,
 };

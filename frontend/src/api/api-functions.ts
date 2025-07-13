@@ -1,4 +1,4 @@
-import type { BgJob, Query, Recipe } from "../types";
+import type { BgJob, DataQueryParams, Query, Recipe } from "../types";
 
 const BACKEND_API_URL = import.meta.env.VITE_BACKEND_API_URL;
 
@@ -79,16 +79,42 @@ async function updateBgJobResolved(
 	return await response.json();
 }
 
-async function getAllBgJobs(query: Record<string, unknown>): Promise<BgJob[]> {
-	const response = await fetch(`${BACKEND_API_URL}/query/bg-jobs/all`, {
+async function getAllBgJobs({
+	filters,
+	tableParams,
+}: {
+	filters: Record<string, unknown>;
+	tableParams: DataQueryParams;
+}): Promise<BgJob[]> {
+	const { skip, limit } = tableParams;
+	const response = await fetch(
+		`${BACKEND_API_URL}/query/bg-jobs/all?skip=${skip}&limit=${limit}`,
+		{
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(filters),
+		},
+	);
+	if (!response.ok) {
+		throw new Error("Failed to fetch bg jobs");
+	}
+	return await response.json();
+}
+
+async function getBgJobsCount(
+	filters: Record<string, unknown>,
+): Promise<number> {
+	const response = await fetch(`${BACKEND_API_URL}/query/bg-jobs/count`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
 		},
-		body: JSON.stringify(query),
+		body: JSON.stringify(filters),
 	});
 	if (!response.ok) {
-		throw new Error("Failed to fetch bg jobs");
+		throw new Error("Failed to fetch bg jobs count");
 	}
 	return await response.json();
 }
@@ -102,4 +128,5 @@ export {
 	getBgJob,
 	updateBgJobResolved,
 	getAllBgJobs,
+	getBgJobsCount,
 };
