@@ -15,4 +15,4 @@ class State(AgentStateWithStructuredResponse):
    query_id: str | None = None
    query: str | None = None
    user_info: UserInfo | None = None
-   modified_recipe_contents: List[ModifiedRecipeContent] = []
+   modified_recipe_content: ModifiedRecipeContent | None = None

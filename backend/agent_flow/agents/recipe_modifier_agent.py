@@ -1,7 +1,9 @@
 from typing import Any, List
+
+from langchain_core.prompts import PromptTemplate
 from agent_flow.custom_types.agent_types import RawRecipeContent, State
 from langchain_openai import ChatOpenAI
-from shared.models import ModifiedRecipeContentList
+from shared.models import ModifiedRecipeContent
 from langchain_core.tools.simple import Tool
 from langgraph.prebuilt import create_react_agent
 from langchain_tavily import TavilySearch, TavilyCrawl
@@ -12,8 +14,9 @@ import logging
 def recipe_modifier_agent(state: State) -> State:
     print("🧠 Recipe Modifier Agent")
 
-    llm = ChatOpenAI(model=OPEN_AI_MODEL, temperature=0)
-    structured = llm.with_structured_output(ModifiedRecipeContentList, method="function_calling")
+    if state["user_info"] is None:
+        raise ValueError("User info is required")
+    
     
     @tool
     def tavily_search(queries: List[str]) -> List[str]:
@@ -22,24 +25,21 @@ def recipe_modifier_agent(state: State) -> State:
         """
         print(f"🔍 Searching for recipes")
         all_urls = []
-        # for query in queries:
-        #     print(f"\t🔍 Searching for recipes with query: '{query}'")
-        #     search_tool = TavilySearch(
-        #         max_results=2,
-        #         search_depth="advanced",
-        #         exclude_domains=["facebook.com", "instagram.com", "x.com", "youtube.com", "tiktok.com", "snapchat.com", "pinterest.com"], # These domains usually don't have official textual recipes
-        #     )
-        #     try:
-        #         search_results = search_tool.invoke({"query": query})
-        #         urls = [res.get("url", "") for res in search_results.get("results", [])]
-        #     except Exception as e:
-        #         logging.warning(f"Error searching for recipes with query: '{query}': {e}")
-        #         urls = []
-        #         continue
-        # all_urls.extend(urls)
-        all_urls = [
-        "https://www.allrecipes.com/recipe/45396/easy-pancakes/",
-        ]
+        for query in queries:
+            print(f"\t🔍 Searching for recipes with query: '{query}'")
+            search_tool = TavilySearch(
+                max_results=5,
+                search_depth="advanced",
+                exclude_domains=["facebook.com", "instagram.com", "x.com", "youtube.com", "tiktok.com", "snapchat.com", "pinterest.com"], # These domains usually don't have official textual recipes
+            )
+            try:
+                search_results = search_tool.invoke({"query": query})
+                urls = [res.get("url", "") for res in search_results.get("results", [])]
+            except Exception as e:
+                logging.warning(f"Error searching for recipes with query: '{query}': {e}")
+                urls = []
+                continue
+        all_urls.extend(urls)
         return all_urls
 
 
@@ -59,7 +59,6 @@ def recipe_modifier_agent(state: State) -> State:
         for url in urls:
             print(f"\tCrawling {url}")
             crawl_tool = TavilyCrawl(
-                instructions="recipe pages",
                 max_depth=2,
                 max_breadth=5,
                 limit=10,
@@ -80,61 +79,27 @@ def recipe_modifier_agent(state: State) -> State:
                     image_urls=entry.get("images", []) or []
                 )
                 all_recipes.append(rc)
+        print(f"🕸️ Finished crawling all recipes")
         return all_recipes
 
-    def call_llm(recipe_contents: List[RawRecipeContent]) -> ModifiedRecipeContentList:
-        print(f"🔍 Calling LLM with {len(recipe_contents)} recipe contents")
-        try:
-            preferences = state["user_info"].preferences
-            restrictions = state["user_info"].restrictions
-            print(f"\tUser info: preferences: {preferences}, restrictions: {restrictions}")
-        except Exception as e:
-            logging.warning(f"Error getting user info: {e}")
-
-        if(len(recipe_contents) == 0):
-            logging.warning(f"No recipe contents to modify")
-            return ModifiedRecipeContentList(modified_recipe_contents=[])
-        try:
-            return structured.invoke({"recipe_contents": recipe_contents, "restrictions": restrictions, "preferences": preferences})
-        except Exception as e:
-            logging.warning(f"Error calling modify_recipe tool: {e}")
-            return ModifiedRecipeContentList(modified_recipe_contents=[])
-
-
-    modify_recipe = Tool.from_function(
-        func=call_llm,
-        name="recipe_modifier_agent",
-        description="""
-            Use this to select the top recipe that have enough content (ingredients, insturctions, image url) and are the easiest-to-modify from a list and rewrite them based on user restrictions.
-
-            Input:
-            - recipe_contents: list of {raw_content, page_url, image_urls}
-            - restrictions: list of strings (e.g. 'no peanuts', 'vegan')
-            - preferences: list of strings (e.g. 'italian', 'spicy', 'pasta')
-
-            The tool will:
-            - Choose a recipe that adehres to one of the values in {preferences} and can be best modified according to {restrictions}
-            - Substitute ingredients based on restrictions
-            - Return a JSON array of exactly 1 object with:
-                - original_page_url
-                - modified_recipe_content (markdown escaped for JSON with only Ingredients and Directions (each section titled as ##Ingredients and ##Directions respectively))
-                - notes (explanation of changes)
-                - image_url (from the raw_content or image_urls - must point to a real, valid URL)
-                - recipe_title (2–5 words)
-                - relevant_preferences (subset of {preferences}, never contains any values from {restrictions}, never new values)
-
-            Output: JSON string with the 1 modified recipe
-        """,
-    )
-
-    prompt = """
+    @tool   
+    def modify_recipe(modified_recipe_content: ModifiedRecipeContent) -> ModifiedRecipeContent:
+        """
+        Use this to validate the modified recipe content.
+        Input:
+            - modified_recipe_content: ModifiedRecipeContent object
+        Output:
+            - modified_recipe_content: validated input
+        """
+        return modified_recipe_content
+        
+    prompt_template = """
         You are a recipe recommendation and modification assistant designed to help users discover and adapt recipes that suit their dietary restrictions and preferences.
 
-        You are given a state object that contains the following fields:
-            - `user_info`: a UserInfo object with the following fields:
-                - `restrictions`: list of dietary restrictions or allergies.
-                - `preferences`: list of preferred cuisines, ingredients, flavors, or meal types.
-       
+        You are given the following information:
+            - `restrictions`:  {restrictions}. It is a list of dietary restrictions or allergies. Example: ["vegan", "gluten-free", "no peanuts"]
+            - `preferences`: {preferences}. It is a list of preferred cuisines, ingredients, flavors, or meal types. Example: ["italian", "asian", "chinese"]
+
         You have access to the following tools:
 
         ---
@@ -143,101 +108,143 @@ def recipe_modifier_agent(state: State) -> State:
 
         1. **tavily_search**
         - Use this to find potential recipe pages.
-        - Input: A list of string queries, each query corresponding to an element in {preferences} (NOT {restrictions}), with this exact format:  
-            `["latest {preferences[0]} recipes", "latest {preferences[1]} recipes", ...]`
+        - Input: A list of string queries, each query corresponding to an element in {preferences} (NOT {restrictions}).
         - Parameters:  
-            - max_results = 10  
+            - max_results = 5  
             - search_depth = "advanced"  
             - exclude_domains = ["facebook.com", "instagram.com", "x.com", "youtube.com", "tiktok.com", "snapchat.com", "pinterest.com"]
         - Output: A combined list of recipe URLs from ALL the searches.
 
         2. **tavily_crawl**
-        - Use this to specify the search and extract full recipe content from URLs.
-        - Input: A list of ALL URLs returned by the tavily_search tool - do not omit any URLs from the list.
+        - Use this to extract full recipe content from URLs.
+        - Input: A list of ALL URLs returned by the tavily_search tool — do not omit any URLs from the list.
         - Crawl Parameters:  
-            - instructions="recipe pages",
-            - max_depth=2,
-            - max_breadth=5,
-            - limit=10,
-            - extract_depth="basic",
-            - include_images=True,
-        - Output: A list of objects with `raw_content`, `page_url`, and optional `image_urls`.
+            - max_depth = 2  
+            - max_breadth = 5  
+            - limit = 10  
+            - extract_depth = "basic"  
+            - include_images = True
+        - Output: A list of objects containing the fields: `raw_content`, `page_url`, and `image_urls`.
 
         3. **modify_recipe**
-        - Use this to select and rewrite the recipe that could be best adapted to {restrictions} (prioritize valid recipes with enough content) and matches a value in {preferences}.
+        - Use this to verify the modified recipe content.
         - Input:
-            - `recipe_contents`: list of recipe documents with `raw_content`, `page_url`, and `image_urls`
-        - Output: A JSON array of **exactly 1** modified recipe with:
-            - `original_page_url`
-            - `modified_recipe_content` (Markdown with **only** "## Ingredients" and "## Directions", escaped for JSON - newlines (\\n) and double quotes (\\"))
-            - `notes` explaining substitutions
-            - `image_url` (from the original recipe page - must point to a real, valid URL)
-            - `recipe_title` (2–5 words)
-            - `relevant_preferences` (subset of {preferences}, NEVER contains any values from {restrictions}, NEVER contains values that are not in {preferences})
+            - modified_recipe_content: ModifiedRecipeContent object
+        - Output:
+            - modified_recipe_content: validated input
 
         ---
 
         ### 🧠 Your Task Flow
 
-        Given:
-        - `state`: a State object that contains the following fields:
-            - `user_info`: a UserInfo object with the following fields:
-                - `restrictions`: list of dietary restrictions or allergies.
-                - `preferences`: list of preferred cuisines, ingredients, flavors, or meal types.
+        1. Call the `tavily_search` tool.
+            - Use the values in {preferences} to generate a list of search queries to find recent recipe URLs.
+            - If the search results are poor or too few, refine and retry the tool.
 
-        Your steps:
-        1. Call the `tavily_search` tool using the search queries list (based only on {preferences}) to find candidate recipe URLs .
+        2. Call the `tavily_crawl` tool using the result URLs from `tavily_search`.
 
-        2. Call the `tavily_crawl` tool with the resulting URL list to fetch the raw recipe content.
+            ✅ Proceed to step 3 if **at least one** result has:
+                - non-empty `raw_content`, and
+                - a valid `page_url`.
 
-        4. Call the `modify_recipe` tool with the crawled recipe content, {restrictions}, and {preferences}.
+            🔁 You may retry `tavily_crawl` **once** with refined queries if:
+                - all `raw_content` fields are empty or irrelevant.
 
-        5. Output ONLY the result returned from `modify_recipe` — no explanations or commentary.
+            ⚠️ Never call `tavily_crawl` more than **two times total**.
+
+        3. Choose and modify a recipe using:
+            - `recipe_contents` from `tavily_crawl`
+            - `restrictions` and `preferences` from the user
+
+            Choose the **first recipe** in the list that:
+                - matches at least one value from {preferences}
+                - and has valid `raw_content` and `page_url`
+
+            Then, modify the recipe to:
+                - substitute or remove ingredients based on {restrictions}
+                - preserve relevance to user preferences
+
+            Create a JSON object with these fields:
+                - `original_page_url`: must match the `page_url` from tavily_crawl
+                - `modified_recipe_content`: markdown-escaped text with only two sections:
+                    - ## Ingredients  
+                    - ## Directions  
+                - `notes`: describe changes made to ingredients or method
+                - `image_url`: a valid image URL from `image_urls` or `raw_content`
+                - `recipe_title`: short 2–5 word name
+                - `relevant_preferences`: only values from {preferences}, never from {restrictions} or anything new
+
+        4. Call the `modify_recipe` tool with the above JSON object.
+
+        5. Validate the modified recipe result:
+            - ✅ Check that:
+                - The recipe clearly reflects **at least one** of the user’s preferences
+                - The ingredients and directions **do not violate any** restrictions
+                - At least one ingredient has been substituted or removed due to a restriction  
+                (**unless** the recipe was already compliant)
+            - 🔁 If validation fails, repeat **step 3** with a different recipe from the same crawl results
+            - ⛔ Do not repeat step 3 more than **twice total** (i.e., 3 total attempts including the first)
+            - If still invalid after two retries, return the **most compliant available** result
+
+        6. ✅ Return ONLY the validated output from the `modify_recipe` tool — no explanations, commentary, or extra text.
 
         ---
 
         ### ⚠️ Important Behavior Rules
 
-        - NEVER use {restrictions} for the tavily_search tool. ONLY use {preferences}.
-        - NEVER call `tavily_crawl` until you have valid URLs from `tavily_search`.
-        - Do not call `modify_recipe` until you have valid `raw_content` and `page_url` for at least 1 recipe.
-        - `relevant_preferences` in the final result must only include values from {preferences}, never from {restrictions}.
-        - The markdown content in `modified_recipe_content` should NOT contain notes and images - these is handled by the `notes` and `image_url` fields in the output. The markdown should **ONLY** contain the ingredients and directions.
-        - the original_page_url should be the same as the URL in the `page_url` field of the recipe content from tavily_crawl.
-        - You MUST always return 1 recipe.
+        - Never call `tavily_crawl` until `tavily_search` returns valid URLs.
+        - After first `tavily_crawl`, proceed to step 3 if at least one valid result is found.
+        - Retry `tavily_crawl` only once if needed. Never more than twice total.
+        - After calling `modify_recipe`, validate the result against:
+            - Preference match
+            - Restriction adherence
+            - Ingredient modification (unless already compliant)
+        - Retry step 3 with a different recipe if validation fails. Max two retries (three total attempts).
+        - Always return exactly **one** modified recipe.
 
-        ### ✅ Example valid inputs and outputs:
+        ---
 
-        Input: state = {
-            "user_info": {
-                "restrictions": ["vegan"],
-                "preferences": ["italian", "asian", "chinese"]
-            }
-        }
+        ### ✅ Example valid input and output
+
+        Input:
+            - restrictions: ["vegan"]
+            - preferences: ["italian", "asian", "chinese"]
+
         Output:
         [
-        {
-            "original_page_url": "https://example.com/vegan-pasta",
-            "modified_recipe_content": "## Ingredients\\n- 1 cup oat milk\\n- 1 tbsp olive oil\\n\\n## Directions\\n1. Heat oil...\\n2. Add pasta...",
-            "notes": "Replaced dairy with oat milk and removed butter to accommodate a vegan restriction.",
-            "image_url": "https://example.com/images/vegan-pasta.jpg",
-            "recipe_title": "Vegan Creamy Pasta",
+        {{
+            "original_page_url": "https://www.budgetbytes.com/creamy-tomato-spinach-pasta/",
+            "modified_recipe_content": "## Ingredients\\n- ½ lb penne pasta\\n- 2 oz vegan cream cheese\\n\\n## Directions\\n1. Heat oil...\\n2. Add pasta...",
+            "notes": "Replaced cream cheese with vegan cream cheese and butter with olive oil to accommodate a vegan restriction.",
+            "image_url": "https://www.budgetbytes.com/wp-content/uploads/2020/05/CreamyTomatoSpinachPasta_FrontBiteOnFork.jpg",
+            "recipe_title": "Creamy Tomato Spinach Pasta",
             "relevant_preferences": ["italian"]
-        },
+        }}
         ]
-    """
+        """
+
+    prompt = PromptTemplate.from_template(prompt_template)
+    print("input variables: ", prompt.input_variables)
+    prompt = prompt.format(
+        restrictions=state["user_info"].restrictions,
+        preferences=state["user_info"].preferences,
+    )
+
+    llm = ChatOpenAI(model=OPEN_AI_MODEL, temperature=0)
+    llm_with_tools = llm.bind_tools([tavily_search, tavily_crawl, modify_recipe])
 
     agent = create_react_agent(
-        model=llm,
+        model=llm_with_tools,
         tools=[tavily_search, tavily_crawl, modify_recipe],
         prompt=prompt,
-        response_format=("result", ModifiedRecipeContentList),
+        response_format=("result", ModifiedRecipeContent),
         state_schema=State,
     )
 
     result_state = agent.invoke(state)
-    recipe_contents: ModifiedRecipeContentList = result_state["structured_response"]
-    state["modified_recipe_contents"] = recipe_contents.modified_recipe_contents
+    validated_result = ModifiedRecipeContent.model_validate(result_state["structured_response"])
+    state["modified_recipe_content"] = validated_result
+    print(f"🧠 Recipe Modifier Agent finished")
     return state
 
 
