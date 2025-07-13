@@ -7,12 +7,12 @@ export function RecipeList({ recipes }: { recipes: Recipe[] }) {
 	const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
 	return (
-		<div className="flex flex-wrap gap-4">
+		<div className="flex flex-wrap gap-4 justify-center py-20">
 			{recipes?.map((recipe, index) => (
 				<RecipeCard
 					key={index}
 					recipe={recipe}
-					className="w-150 h-90"
+					className="w-100 h-100"
 					onClick={() => {
 						setSelectedRecipe(recipe);
 					}}

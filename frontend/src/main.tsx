@@ -7,13 +7,13 @@ import "antd/dist/reset.css";
 import "./app.css";
 import { Provider as JotaiProvider } from "jotai";
 import {
-	AboutPage,
 	AppLayout,
 	globalAtomStore,
 	QueriesPage,
 	QueryPage,
 	RecipesPage,
 } from "./components";
+import { NotFoundPage } from "./components/NotFoundPage";
 import { ROUTES } from "./constants";
 
 export const queryClient = new QueryClient();
@@ -24,10 +24,10 @@ const router = createBrowserRouter([
 		element: <AppLayout />,
 		children: [
 			{ index: true, element: <RecipesPage /> },
-			{ path: ROUTES.about, element: <AboutPage /> },
 			{ path: ROUTES.queries, element: <QueriesPage /> },
 			{ path: ROUTES.query, element: <QueryPage /> },
 			{ path: ROUTES.recipes, element: <RecipesPage /> },
+			{ path: "*", element: <NotFoundPage /> },
 		],
 	},
 ]);

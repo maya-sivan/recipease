@@ -5,7 +5,15 @@ import { RecipeList } from "./RecipeList";
 export function RecipesPage() {
 	const { data, isLoading } = useAllRecipes();
 
-	if (isLoading) return <Spin />;
-
-	return <RecipeList recipes={data ?? []} />;
+	return (
+		<>
+			{isLoading ? (
+				<div className="flex justify-center items-center h-screen">
+					<Spin size="large" />
+				</div>
+			) : (
+				<RecipeList recipes={data ?? []} />
+			)}
+		</>
+	);
 }
