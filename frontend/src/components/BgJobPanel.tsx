@@ -3,10 +3,10 @@ import {
 	CloseCircleOutlined,
 	SyncOutlined,
 } from "@ant-design/icons";
-import { Alert, Button, Drawer, FloatButton, Spin } from "antd";
+import { Button, Drawer, FloatButton, Spin } from "antd";
 import { useAtom } from "jotai";
-import { useEffect, useState } from "react";
-import { useGetAllBgJobs, useGetBgJob, useUpdateBgJobResolved } from "../api";
+import { useState } from "react";
+import { useGetAllBgJobs, useUpdateBgJobResolved } from "../api";
 import { unresolvedBgJobIdAtom } from "../atoms/bgJobAtom";
 import { BgJobStatus } from "../types/BackendTypes";
 
@@ -16,7 +16,6 @@ export function BackgroundJobPanel() {
 		data: unresolvedBgJobs,
 		isPending,
 		isLoading,
-		isError,
 	} = useGetAllBgJobs({ is_resolved: false });
 
 	const { mutate: updateBgJobResolved } = useUpdateBgJobResolved();

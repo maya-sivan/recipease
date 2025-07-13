@@ -1,7 +1,7 @@
 import { Card, Image } from "antd";
 import clsx from "clsx";
 import type { Recipe } from "../../types";
-import { InfoTag } from "../shared/InfoTag";
+import { InfoTag } from "../shared";
 
 export function RecipeCard({
 	recipe,

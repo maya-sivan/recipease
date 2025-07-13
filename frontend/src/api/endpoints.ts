@@ -2,7 +2,6 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { unresolvedBgJobIdAtom } from "../atoms/bgJobAtom";
 import { queryClient } from "../main";
-import type { BgJob } from "../types/BackendTypes";
 import {
 	createNewQueryBgJob,
 	getAllBgJobs,

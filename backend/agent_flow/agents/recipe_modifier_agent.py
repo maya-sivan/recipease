@@ -5,7 +5,6 @@ from shared.models import ModifiedRecipeContentList
 from langchain_core.tools.simple import Tool
 from langgraph.prebuilt import create_react_agent
 from langchain_tavily import TavilySearch, TavilyCrawl
-from langchain_core.tools import tool
 
 
 def recipe_modifier_agent(state: State) -> State:
@@ -221,7 +220,6 @@ def recipe_modifier_agent(state: State) -> State:
         prompt=prompt,
         response_format=("result", ModifiedRecipeContentList),
         state_schema=State,
-        config={"recursion_limit": 15}
     )
 
     result_state = agent.invoke(state)

@@ -49,6 +49,7 @@ async def process_recent_queries():
     for query in queries_created_before_most_recent_run:
         # master = MasterAgent()
         # master.run_scheduled_query(query_id=query["_id"])
+        print("placeholder for cron job")
         #TODO: uncomment to run cron job
 
 @app.on_event("shutdown")

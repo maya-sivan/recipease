@@ -6,7 +6,6 @@ from langgraph.prebuilt import create_react_agent
 
 def categorize_agent(state: State) -> State:
     print("🔍 Categorize Agent")
-    print(state)
     llm = ChatOpenAI(model="gpt-4.1-nano", temperature=0)
     structured = llm.with_structured_output(UserInfo)
 
@@ -66,7 +65,6 @@ def categorize_agent(state: State) -> State:
         prompt=prompt,
         response_format=("result", UserInfo),
         state_schema=State,
-        config={"recursion_limit": 15}
     )
 
     result_state = agent.invoke(state)

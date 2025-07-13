@@ -7,7 +7,7 @@ import { Layout, Menu, Typography } from "antd";
 import type React from "react";
 import { useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { ROUTES } from "../constants/routes";
+import { ROUTES } from "../constants";
 import { BackgroundJobPanel } from "./BgJobPanel";
 
 const { Content, Sider, Header } = Layout;
@@ -30,7 +30,7 @@ const menuItems = [
 	},
 ];
 
-const AppLayout: React.FC = () => {
+export const AppLayout: React.FC = () => {
 	const [collapsed, setCollapsed] = useState(false);
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -82,5 +82,3 @@ const AppLayout: React.FC = () => {
 		</Layout>
 	);
 };
-
-export default AppLayout;

@@ -6,11 +6,15 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "antd/dist/reset.css";
 import "./app.css";
 import { Provider as JotaiProvider } from "jotai";
-import { AboutPage, RecipesPage, RequestsPage } from "./components";
-import AppLayout from "./components/AppLayout";
-import { globalAtomStore } from "./components/context/global-atom-store";
-import { QueryPage } from "./components/Queries/QueryPage";
-import { ROUTES } from "./constants/routes";
+import {
+	AboutPage,
+	AppLayout,
+	globalAtomStore,
+	QueriesPage,
+	QueryPage,
+	RecipesPage,
+} from "./components";
+import { ROUTES } from "./constants";
 
 export const queryClient = new QueryClient();
 
@@ -21,7 +25,7 @@ const router = createBrowserRouter([
 		children: [
 			{ index: true, element: <RecipesPage /> },
 			{ path: ROUTES.about, element: <AboutPage /> },
-			{ path: ROUTES.queries, element: <RequestsPage /> },
+			{ path: ROUTES.queries, element: <QueriesPage /> },
 			{ path: ROUTES.query, element: <QueryPage /> },
 			{ path: ROUTES.recipes, element: <RecipesPage /> },
 		],

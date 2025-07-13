@@ -1,4 +1,4 @@
-import type { BgJob, BgJobStatus, Query, Recipe } from "../types";
+import type { BgJob, Query, Recipe } from "../types";
 
 const BACKEND_API_URL = import.meta.env.VITE_BACKEND_API_URL;
 

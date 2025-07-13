@@ -1,8 +1,7 @@
 import { Card } from "antd";
 import clsx from "clsx";
 import type { Query } from "../../types";
-import { InfoTag } from "../shared/InfoTag";
-import { TextBox } from "../shared/TextBox";
+import { InfoTag, TextBox } from "../shared";
 
 export function QueryCard({
 	query,
