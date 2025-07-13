@@ -1,4 +1,3 @@
-export * from "./AboutPage";
 export * from "./AppLayout";
 export * from "./BgJobPanel";
 export * from "./context";

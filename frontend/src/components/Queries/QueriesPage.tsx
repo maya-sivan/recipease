@@ -1,38 +1,33 @@
-import { Button, Spin } from "antd";
-import { useState } from "react";
+import { Spin } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useAllQueries } from "../../api";
 import { ROUTES } from "../../constants";
-import { CreateNewQueryModal } from "./CreateNewQueryModal";
 import { QueryCard } from "./QueryCard";
 
 export function QueriesPage() {
 	const { data, isLoading } = useAllQueries();
 	const navigate = useNavigate();
-	const [isCreateNewQueryModalOpen, setIsCreateNewQueryModalOpen] =
-		useState(false);
-	if (isLoading) return <Spin />;
+
 	return (
-		<div>
-			<Button onClick={() => setIsCreateNewQueryModalOpen(true)}>
-				Create New Query
-			</Button>
-			<div className="flex flex-wrap gap-4">
-				{data?.map((query, index) => (
-					<QueryCard
-						key={index}
-						query={query}
-						className="w-150 h-90"
-						onClick={() => {
-							navigate(`${ROUTES.queries}/${query._id}`);
-						}}
-					/>
-				))}
-			</div>
-			<CreateNewQueryModal
-				open={isCreateNewQueryModalOpen}
-				onCancel={() => setIsCreateNewQueryModalOpen(false)}
-			/>
-		</div>
+		<>
+			{isLoading ? (
+				<div className="flex justify-center items-center h-screen">
+					<Spin size="large" />
+				</div>
+			) : (
+				<div className="flex flex-wrap gap-4 justify-center py-20">
+					{data?.map((query) => (
+						<QueryCard
+							key={query._id}
+							query={query}
+							className="w-150 h-70"
+							onClick={() => {
+								navigate(`${ROUTES.queries}/${query._id}`);
+							}}
+						/>
+					))}
+				</div>
+			)}
+		</>
 	);
 }

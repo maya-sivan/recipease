@@ -3,12 +3,13 @@ import {
 	InfoCircleOutlined,
 	UnorderedListOutlined,
 } from "@ant-design/icons";
-import { Layout, Menu, Typography } from "antd";
+import { Button, Layout, Menu, Typography } from "antd";
 import type React from "react";
 import { useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { ROUTES } from "../constants";
 import { BackgroundJobPanel } from "./BgJobPanel";
+import { CreateNewQueryModal } from "./Queries/CreateNewQueryModal";
 
 const { Content, Sider, Header } = Layout;
 
@@ -23,17 +24,14 @@ const menuItems = [
 		icon: <UnorderedListOutlined />,
 		label: "Requests",
 	},
-	{
-		key: ROUTES.about,
-		icon: <InfoCircleOutlined />,
-		label: "About",
-	},
 ];
 
 export const AppLayout: React.FC = () => {
 	const [collapsed, setCollapsed] = useState(false);
 	const navigate = useNavigate();
 	const location = useLocation();
+	const [isCreateNewQueryModalOpen, setIsCreateNewQueryModalOpen] =
+		useState(false);
 
 	const currentPath =
 		location.pathname === "/" ? ROUTES.recipes : location.pathname;
@@ -61,21 +59,52 @@ export const AppLayout: React.FC = () => {
 						padding: "10px 24px",
 						background: "transparent",
 						userSelect: "none",
+						display: "flex",
+						alignItems: "center",
+						justifyContent: "space-between",
+						position: "relative",
 					}}
 				>
-					<Typography.Title level={2} style={{ color: "#0952ab" }}>
+					<div style={{ flex: 1 }}></div>
+
+					<Typography.Title
+						level={1}
+						style={{
+							color: "#0952ab",
+							textAlign: "center",
+							position: "absolute",
+							left: "50%",
+							transform: "translateX(-50%)",
+							margin: 0,
+							fontWeight: "bold",
+						}}
+					>
 						{menuItems.find((item) => item.key === currentPath)?.label}
 					</Typography.Title>
+
+					<div style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
+						<Button
+							type="primary"
+							onClick={() => setIsCreateNewQueryModalOpen(true)}
+						>
+							Create New Query
+						</Button>
+					</div>
 				</Header>
 				<Content
 					style={{
 						margin: 24,
-						backgroundColor: "#cee7f5",
+						backgroundColor: "#e1ecf2",
 						border: "1px solid #b2d8ed",
 						borderRadius: "10px",
 					}}
 				>
 					<BackgroundJobPanel />
+
+					<CreateNewQueryModal
+						open={isCreateNewQueryModalOpen}
+						onCancel={() => setIsCreateNewQueryModalOpen(false)}
+					/>
 					<Outlet />
 				</Content>
 			</Layout>
