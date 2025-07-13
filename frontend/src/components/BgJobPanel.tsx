@@ -13,7 +13,6 @@ import { BgJobStatus } from "../types/BackendTypes";
 export function BackgroundJobPanel() {
 	const [bgJobId, setBgJobId] = useAtom(bgJobIdAtom);
 	const { data: bgJob, isPending, isLoading, isError } = useGetBgJob(bgJobId);
-	console.log("bgJob", bgJob);
 	const [open, setOpen] = useState(!!bgJob);
 	if (!bgJob) return null;
 
@@ -51,7 +50,15 @@ export function BackgroundJobPanel() {
 				placement="bottom"
 				height={120}
 				open={open}
-				onClose={() => setOpen(false)}
+				onClose={() => {
+					setOpen(false);
+					if (
+						status === BgJobStatus.Completed ||
+						status === BgJobStatus.Failed
+					) {
+						setBgJobId(undefined);
+					}
+				}}
 				closable
 			>
 				{renderContent()}

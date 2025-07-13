@@ -43,6 +43,7 @@ function useGetBgJob(jobId: string | undefined) {
 		queryKey: ["bgJob", jobId],
 		queryFn: () => getBgJob(jobId || ""),
 		enabled: !!jobId,
+		refetchInterval: 2000,
 	});
 }
 
@@ -52,7 +53,6 @@ function useStartNewQueryBgJob() {
 		mutationFn: ({ userEmail, query }: { userEmail: string; query: string }) =>
 			createNewQueryBgJob(userEmail, query),
 		onSuccess: ({ job_id: jobId }) => {
-			console.log("setting bg job Id to ", jobId);
 			setBgJobId(jobId);
 		},
 	});
