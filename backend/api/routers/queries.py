@@ -8,8 +8,8 @@ from uuid import uuid4
 query_router = APIRouter()
 
 @query_router.get("/all", response_description="List all queries", response_model=List[QueryResponse])
-def list_queries(request: Request):
-    queries = list(request.app.database["queries"].find(limit=10))
+def list_queries(request: Request, skip: int = 0, limit: int = 5):
+    queries = list(request.app.database["queries"].find().skip(skip).limit(limit).sort("created_at", -1))
     return queries
 
 @query_router.get("/{id}", response_description="Get a single query by id", response_model=QueryResponse)
@@ -36,7 +36,7 @@ def start_job(payload: JobRequest, background_tasks: BackgroundTasks, request: R
     return {"job_id": job_id}
 
 @query_router.get("/bg-job/{job_id}", response_description="Get a bg job by its ID", response_model=BgJob)
-def get_job_status(job_id: str, request: Request):
+def get_job(job_id: str, request: Request):
     job = request.app.database["background_tasks"].find_one({"job_id": job_id}, {"_id": 0})
     if not job:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Job with ID {job_id} not found")
@@ -44,7 +44,7 @@ def get_job_status(job_id: str, request: Request):
 
 
 @query_router.put("/bg-job/{job_id}/is-resolved", response_description="Update a bg job by its ID", response_model=BgJob)
-def update_job_status(job_id: str, payload: UpdateResolvedStatus, request: Request):
+def update_job_is_resolved(job_id: str, payload: UpdateResolvedStatus, request: Request):
    result = request.app.database["background_tasks"].find_one_and_update(
         {"job_id": job_id},
         {"$set": {"is_resolved": payload.is_user_resolved}},
@@ -59,7 +59,7 @@ def update_job_status(job_id: str, payload: UpdateResolvedStatus, request: Reque
 
 @query_router.post("/bg-jobs/all", response_description="List all bg jobs", response_model=List[BgJob])
 def list_bg_jobs(request: Request, skip: int = 0, limit: int = 5, payload: Optional[dict] = None):
-    bg_jobs = list(request.app.database["background_tasks"].find(payload).skip(skip).limit(limit))
+    bg_jobs = list(request.app.database["background_tasks"].find(payload).skip(skip).limit(limit).sort("created_at", -1))
     return bg_jobs
 
 @query_router.post("/bg-jobs/count", response_description="Get the count of bg jobs", response_model=int)
