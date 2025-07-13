@@ -58,6 +58,11 @@ def update_job_status(job_id: str, payload: UpdateResolvedStatus, request: Reque
 
 
 @query_router.post("/bg-jobs/all", response_description="List all bg jobs", response_model=List[BgJob])
-def list_bg_jobs(request: Request, query: Optional[dict] = None):
-    bg_jobs = list(request.app.database["background_tasks"].find(query,limit=5))
+def list_bg_jobs(request: Request, skip: int = 0, limit: int = 5, payload: Optional[dict] = None):
+    bg_jobs = list(request.app.database["background_tasks"].find(payload).skip(skip).limit(limit))
     return bg_jobs
+
+@query_router.post("/bg-jobs/count", response_description="Get the count of bg jobs", response_model=int)
+def get_bg_jobs_count(request: Request, payload: Optional[dict] = None):
+    count = request.app.database["background_tasks"].count_documents(payload)
+    return count

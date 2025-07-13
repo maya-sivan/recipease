@@ -3,25 +3,42 @@ import {
 	CloseCircleOutlined,
 	SyncOutlined,
 } from "@ant-design/icons";
-import { Button, Drawer, FloatButton, Spin } from "antd";
+import { Badge, Button, Drawer, FloatButton, Spin, Table } from "antd";
 import { useAtom } from "jotai";
 import { useState } from "react";
-import { useGetAllBgJobs, useUpdateBgJobResolved } from "../api";
+import {
+	useGetAllBgJobs,
+	useGetBgJobsCount,
+	useUpdateBgJobResolved,
+} from "../api";
 import { unresolvedBgJobIdAtom } from "../atoms/bgJobAtom";
-import { BgJobStatus } from "../types/BackendTypes";
+import type { DataQueryParams } from "../types";
+import { type BgJob, BgJobStatus } from "../types/BackendTypes";
 
 export function BackgroundJobPanel() {
 	const [, setUnresolvedBgJobIds] = useAtom(unresolvedBgJobIdAtom);
+	const [tableParams, setTableParams] = useState<DataQueryParams>({
+		skip: 0,
+		limit: 5,
+	});
+
+	const filters = { is_resolved: false };
 	const {
 		data: unresolvedBgJobs,
 		isPending,
 		isLoading,
-	} = useGetAllBgJobs({ is_resolved: false });
+	} = useGetAllBgJobs({
+		filters,
+		tableParams,
+	});
+
+	const { data: bgJobsCount } = useGetBgJobsCount(filters);
 
 	const { mutate: updateBgJobResolved } = useUpdateBgJobResolved();
 	const [open, setOpen] = useState(
 		!!unresolvedBgJobs && unresolvedBgJobs.length > 0,
 	);
+
 	if (!unresolvedBgJobs || unresolvedBgJobs.length === 0) return null;
 
 	const allJobsCompleted = unresolvedBgJobs.every(
@@ -41,50 +58,92 @@ export function BackgroundJobPanel() {
 		<CloseCircleOutlined />
 	);
 
-	const renderContent = () => {
-		if (isPending || isLoading) return <Spin tip="Checking..." />;
-		return (
-			<div className="flex flex-col gap-2">
-				{unresolvedBgJobs.map((job) => (
-					<div key={job.job_id} className="flex justify-between px-40">
-						<span className="w-50 overflow-hidden text-ellipsis whitespace-nowrap">
-							{job.query}
-						</span>
-						{job.status === BgJobStatus.Running && <SyncOutlined spin />}
-						{job.status === BgJobStatus.Completed && <CheckCircleOutlined />}
-						{job.status === BgJobStatus.Failed && <CloseCircleOutlined />}
-						<Button
-							onClick={() => {
-								updateBgJobResolved({
-									jobId: job.job_id,
-									isUserResolved: true,
-								});
-								setUnresolvedBgJobIds((prev) =>
-									prev.filter((id) => id !== job.job_id),
-								);
-							}}
-						>
-							Resolve
-						</Button>
-					</div>
-				))}
-			</div>
-		);
-	};
+	const columns = [
+		{
+			title: "Query",
+			dataIndex: "query",
+			key: "query",
+		},
+		{
+			title: "Created At",
+			dataIndex: "created_at",
+			key: "created_at",
+			render: (_: unknown, bgJob: BgJob) => (
+				<span>{new Date(bgJob.created_at).toLocaleString()}</span>
+			),
+		},
+		{
+			title: "Status",
+			dataIndex: "status",
+			key: "status",
+			render: (_: unknown, bgJob: BgJob) => (
+				<Badge
+					status={
+						bgJob.status === BgJobStatus.Running
+							? "processing"
+							: bgJob.status === BgJobStatus.Completed
+								? "success"
+								: "error"
+					}
+				>
+					{bgJob.status.charAt(0).toUpperCase() + bgJob.status.slice(1)}
+				</Badge>
+			),
+		},
+		{
+			title: "Actions",
+			key: "actions",
+			render: (_: unknown, bgJob: BgJob) => (
+				<Button
+					onClick={() => {
+						updateBgJobResolved({
+							jobId: bgJob.job_id,
+							isUserResolved: true,
+						});
+						setUnresolvedBgJobIds((prev) =>
+							prev.filter((id) => id !== bgJob.job_id),
+						);
+					}}
+				>
+					Resolve
+				</Button>
+			),
+		},
+	];
 
 	return (
 		<>
 			<Drawer
 				title="Background Job"
 				placement="bottom"
-				height={150}
+				height={600}
 				open={open}
 				onClose={() => {
 					setOpen(false);
 				}}
 				closable
 			>
-				{renderContent()}
+				{isPending || isLoading ? (
+					<Spin tip="Checking..." />
+				) : (
+					<Table
+						dataSource={unresolvedBgJobs}
+						columns={columns}
+						pagination={{
+							pageSize: tableParams.limit,
+							hideOnSinglePage: true,
+							total: bgJobsCount,
+							onChange: (page, pageSize) => {
+								setTableParams({
+									skip: (page - 1) * pageSize,
+									limit: pageSize,
+								});
+							},
+							pageSizeOptions: [5, 10, 20, 50, 100],
+						}}
+						rowKey="job_id"
+					/>
+				)}
 			</Drawer>
 
 			{!open && (
