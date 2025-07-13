@@ -224,7 +224,6 @@ def recipe_modifier_agent(state: State) -> State:
         """
 
     prompt = PromptTemplate.from_template(prompt_template)
-    print("input variables: ", prompt.input_variables)
     prompt = prompt.format(
         restrictions=state["user_info"].restrictions,
         preferences=state["user_info"].preferences,
