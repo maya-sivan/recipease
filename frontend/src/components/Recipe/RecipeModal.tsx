@@ -1,8 +1,7 @@
 import { Image, Modal, Typography } from "antd";
 import ReactMarkdown from "react-markdown";
 import type { Recipe } from "../../types";
-import { InfoTag } from "../shared/InfoTag";
-import { TextBox } from "../shared/TextBox";
+import { InfoTag, TextBox } from "../shared";
 
 export function RecipeModal({
 	recipe,

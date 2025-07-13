@@ -1,9 +1,8 @@
 import { Spin, Typography } from "antd";
 import { useParams } from "react-router-dom";
 import { useGetQueryById, useGetRecipesByQueryId } from "../../api/endpoints";
-import { RecipeList } from "../Recipe/RecipeList";
-import { InfoTag } from "../shared/InfoTag";
-import { TextBox } from "../shared/TextBox";
+import { RecipeList } from "../Recipe";
+import { InfoTag, TextBox } from "../shared";
 
 export function QueryPage() {
 	const { id } = useParams();

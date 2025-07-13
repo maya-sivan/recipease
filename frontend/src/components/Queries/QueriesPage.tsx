@@ -2,11 +2,11 @@ import { Button, Spin } from "antd";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAllQueries } from "../../api";
-import { ROUTES } from "../../constants/routes";
+import { ROUTES } from "../../constants";
 import { CreateNewQueryModal } from "./CreateNewQueryModal";
 import { QueryCard } from "./QueryCard";
 
-export function RequestsPage() {
+export function QueriesPage() {
 	const { data, isLoading } = useAllQueries();
 	const navigate = useNavigate();
 	const [isCreateNewQueryModalOpen, setIsCreateNewQueryModalOpen] =
