@@ -43,7 +43,9 @@ def categorize_agent(state: State) -> State:
             *   `"preferences"`: An array containing keywords or short descriptions of the user's preferences.
             *   `"restrictions"`: An array containing keywords or short descriptions of the user's restrictions.
         4.  Ensure the array values are concise strings.
-        5.  **Crucially, your output must be *only* the JSON object.** Do not include any other text, explanations, or formatting outside of the JSON structure.
+        5.  Ensure that the preferences array never contains any values from the restrictions array.
+        6.  Note that restrictions are always aspects that affect the user's ability to eat or drink something. Example: "vegetarian" is a restriction, NOT a preference because it affects the user's ability to eat meat.
+        7.  **Crucially, your output must be *only* the JSON object.** Do not include any other text, explanations, or formatting outside of the JSON structure.
 
         **Example:**
 
@@ -64,6 +66,7 @@ def categorize_agent(state: State) -> State:
         prompt=prompt,
         response_format=("result", UserInfo),
         state_schema=State,
+        config={"recursion_limit": 15}
     )
 
     result_state = agent.invoke(state)

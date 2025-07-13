@@ -1,4 +1,4 @@
-import type { BgJob, Query, Recipe } from "../types";
+import type { BgJob, BgJobStatus, Query, Recipe } from "../types";
 
 const BACKEND_API_URL = import.meta.env.VITE_BACKEND_API_URL;
 
@@ -38,7 +38,7 @@ async function createNewQueryBgJob(
 	userEmail: string,
 	query: string,
 ): Promise<{ job_id: string }> {
-	const response = await fetch(`${BACKEND_API_URL}/query/create-new-bg-job`, {
+	const response = await fetch(`${BACKEND_API_URL}/query/bg-job`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
@@ -52,11 +52,43 @@ async function createNewQueryBgJob(
 }
 
 async function getBgJob(jobId: string): Promise<BgJob> {
-	const response = await fetch(
-		`${BACKEND_API_URL}/query/bg-job-status/${jobId}`,
-	);
+	const response = await fetch(`${BACKEND_API_URL}/query/bg-job/${jobId}`);
 	if (!response.ok) {
 		throw new Error("Failed to get job status");
+	}
+	return await response.json();
+}
+
+async function updateBgJobResolved(
+	jobId: string,
+	isUserResolved: boolean,
+): Promise<BgJob> {
+	const response = await fetch(
+		`${BACKEND_API_URL}/query/bg-job/${jobId}/is-resolved`,
+		{
+			method: "PUT",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ is_user_resolved: isUserResolved }),
+		},
+	);
+	if (!response.ok) {
+		throw new Error("Failed to update job status");
+	}
+	return await response.json();
+}
+
+async function getAllBgJobs(query: Record<string, unknown>): Promise<BgJob[]> {
+	const response = await fetch(`${BACKEND_API_URL}/query/bg-jobs/all`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(query),
+	});
+	if (!response.ok) {
+		throw new Error("Failed to fetch bg jobs");
 	}
 	return await response.json();
 }
@@ -68,4 +100,6 @@ export {
 	getRecipesByQueryId,
 	createNewQueryBgJob,
 	getBgJob,
+	updateBgJobResolved,
+	getAllBgJobs,
 };

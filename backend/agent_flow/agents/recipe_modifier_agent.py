@@ -111,9 +111,9 @@ def recipe_modifier_agent(state: State) -> State:
                 - original_page_url
                 - modified_recipe_content (markdown with only Ingredients and Directions, escaped for JSON)
                 - notes (explanation of changes)
-                - image_url
+                - image_url (from the original recipe page - must point to a real, valid URL)
                 - recipe_title (2–5 words)
-                - relevant_preferences (subset of user preferences, never restrictions)
+                - relevant_preferences (subset of user_preferences, never contains any values from user_restrictions, never new values)
 
             Output: JSON string with the 2 modified recipes
         """,
@@ -160,9 +160,9 @@ def recipe_modifier_agent(state: State) -> State:
             - `original_page_url`
             - `modified_recipe_content` (Markdown with **only** "## Ingredients" and "## Directions", escaped for JSON - newlines (\\n) and double quotes (\\"))
             - `notes` explaining substitutions
-            - `image_url`
+            - `image_url` (from the original recipe page - must point to a real, valid URL)
             - `recipe_title` (2–5 words)
-            - `relevant_preferences` (subset of input user preferences only; do not include restrictions)
+            - `relevant_preferences` (subset of user_preferences, NEVER contains any values from user_restrictions, NEVER new values)
 
         ---
 
@@ -189,9 +189,12 @@ def recipe_modifier_agent(state: State) -> State:
         - Do not call `modify_recipe` until you have valid `raw_content` and `page_url` for at least 2 recipes.
         - `relevant_preferences` in the final result must only include values from user preferences, never from restrictions.
         - The output of `modify_recipe` must be valid JSON, parsable with `json.loads()`.
+        - You MUST always return 2 recipes.
 
-        ### ✅ Example Valid Output (JSON-parsable string):
+        ### ✅ Example valid inputs and outputs:
 
+        Input: user_restrictions = ["vegan"], user_preferences = ["italian", "asian", "chinese"]
+        Output:
         [
         {
             "original_page_url": "https://example.com/vegan-pasta",
@@ -218,6 +221,7 @@ def recipe_modifier_agent(state: State) -> State:
         prompt=prompt,
         response_format=("result", ModifiedRecipeContentList),
         state_schema=State,
+        config={"recursion_limit": 15}
     )
 
     result_state = agent.invoke(state)

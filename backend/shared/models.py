@@ -85,3 +85,12 @@ class BgJob(BaseModel):
     completed_at: Optional[datetime] = None
     user_email: str
     query: str
+    is_resolved: bool = False
+
+class UpdateBgJob(BaseModel):
+    class Config:
+        all_optional = True
+
+
+class UpdateResolvedStatus(BaseModel):
+    is_user_resolved: bool

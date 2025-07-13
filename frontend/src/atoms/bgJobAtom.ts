@@ -1,5 +1,5 @@
 import { atom } from "jotai";
 
-const bgJobIdAtom = atom<string | undefined>(undefined);
+const unresolvedBgJobIdAtom = atom<string[]>([]);
 
-export { bgJobIdAtom };
+export { unresolvedBgJobIdAtom };

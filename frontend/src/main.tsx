@@ -12,7 +12,7 @@ import { globalAtomStore } from "./components/context/global-atom-store";
 import { QueryPage } from "./components/Queries/QueryPage";
 import { ROUTES } from "./constants/routes";
 
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient();
 
 const router = createBrowserRouter([
 	{
@@ -28,7 +28,9 @@ const router = createBrowserRouter([
 	},
 ]);
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+const container = document.getElementById("root")!;
+const root = ReactDOM.createRoot(container);
+root.render(
 	<React.StrictMode>
 		<QueryClientProvider client={queryClient}>
 			<JotaiProvider store={globalAtomStore}>

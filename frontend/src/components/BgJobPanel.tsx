@@ -3,44 +3,74 @@ import {
 	CloseCircleOutlined,
 	SyncOutlined,
 } from "@ant-design/icons";
-import { Alert, Drawer, FloatButton, Spin } from "antd";
+import { Alert, Button, Drawer, FloatButton, Spin } from "antd";
 import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
-import { useGetBgJob } from "../api";
-import { bgJobIdAtom } from "../atoms/bgJobAtom";
+import { useGetAllBgJobs, useGetBgJob, useUpdateBgJobResolved } from "../api";
+import { unresolvedBgJobIdAtom } from "../atoms/bgJobAtom";
 import { BgJobStatus } from "../types/BackendTypes";
 
 export function BackgroundJobPanel() {
-	const [bgJobId, setBgJobId] = useAtom(bgJobIdAtom);
-	const { data: bgJob, isPending, isLoading, isError } = useGetBgJob(bgJobId);
-	const [open, setOpen] = useState(!!bgJob);
-	if (!bgJob) return null;
+	const [, setUnresolvedBgJobIds] = useAtom(unresolvedBgJobIdAtom);
+	const {
+		data: unresolvedBgJobs,
+		isPending,
+		isLoading,
+		isError,
+	} = useGetAllBgJobs({ is_resolved: false });
 
-	// useEffect(() => {
-	// 	if (bgJob?.status === BgJobStatus.Completed) {
-	// 		setBgJobId(null);
-	// 	}
-	// }, [bgJob, setBgJobId]);
+	const { mutate: updateBgJobResolved } = useUpdateBgJobResolved();
+	const [open, setOpen] = useState(
+		!!unresolvedBgJobs && unresolvedBgJobs.length > 0,
+	);
+	if (!unresolvedBgJobs || unresolvedBgJobs.length === 0) return null;
 
-	const { status } = bgJob || {};
+	const allJobsCompleted = unresolvedBgJobs.every(
+		(job) => job.status === BgJobStatus.Completed,
+	);
+
+	const anyJobRunning = unresolvedBgJobs.some(
+		(job) => job.status === BgJobStatus.Running,
+	);
 
 	// Badge status logic
-	const floatButonIcon =
-		status === BgJobStatus.Running ? (
-			<SyncOutlined />
-		) : status === BgJobStatus.Completed ? (
-			<CheckCircleOutlined />
-		) : status === BgJobStatus.Failed || isError ? (
-			<CloseCircleOutlined />
-		) : null;
+	const floatButonIcon = anyJobRunning ? (
+		<SyncOutlined />
+	) : allJobsCompleted ? (
+		<CheckCircleOutlined />
+	) : (
+		<CloseCircleOutlined />
+	);
 
 	const renderContent = () => {
 		if (isPending || isLoading) return <Spin tip="Checking..." />;
-		if (status === BgJobStatus.Running) return <Spin tip="Job is running..." />;
-		if (status === BgJobStatus.Completed)
-			return <Alert message="Job completed" type="success" showIcon />;
-
-		return null;
+		return (
+			<div className="flex flex-col gap-2">
+				{unresolvedBgJobs.map((job) => (
+					<div key={job.job_id} className="flex justify-between px-40">
+						<span className="w-50 overflow-hidden text-ellipsis whitespace-nowrap">
+							{job.query}
+						</span>
+						{job.status === BgJobStatus.Running && <SyncOutlined spin />}
+						{job.status === BgJobStatus.Completed && <CheckCircleOutlined />}
+						{job.status === BgJobStatus.Failed && <CloseCircleOutlined />}
+						<Button
+							onClick={() => {
+								updateBgJobResolved({
+									jobId: job.job_id,
+									isUserResolved: true,
+								});
+								setUnresolvedBgJobIds((prev) =>
+									prev.filter((id) => id !== job.job_id),
+								);
+							}}
+						>
+							Resolve
+						</Button>
+					</div>
+				))}
+			</div>
+		);
 	};
 
 	return (
@@ -48,16 +78,10 @@ export function BackgroundJobPanel() {
 			<Drawer
 				title="Background Job"
 				placement="bottom"
-				height={120}
+				height={150}
 				open={open}
 				onClose={() => {
 					setOpen(false);
-					if (
-						status === BgJobStatus.Completed ||
-						status === BgJobStatus.Failed
-					) {
-						setBgJobId(undefined);
-					}
 				}}
 				closable
 			>
@@ -74,6 +98,7 @@ export function BackgroundJobPanel() {
 						bottom: 100,
 					}}
 					icon={floatButonIcon}
+					shape="square"
 				/>
 			)}
 		</>

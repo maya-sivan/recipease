@@ -15,10 +15,18 @@ export function CreateNewQueryModal({
 	const handleOk = async () => {
 		try {
 			const values = await form.validateFields();
-			startNewQueryBgJob({
-				userEmail: "mayasivannj@gmail.com",
-				query: values.query,
-			});
+			startNewQueryBgJob(
+				{
+					userEmail: "mayasivannj@gmail.com",
+					query: values.query,
+				},
+				{
+					onSuccess: () => {
+						form.resetFields();
+						onCancel();
+					},
+				},
+			);
 		} catch (err) {
 			// validation error; do nothing
 		}

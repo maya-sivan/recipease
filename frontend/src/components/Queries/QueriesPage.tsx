@@ -1,11 +1,8 @@
 import { Button, Spin } from "antd";
-import { useAtom } from "jotai";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAllQueries, useGetBgJob } from "../../api";
-import { bgJobIdAtom } from "../../atoms/bgJobAtom";
+import { useAllQueries } from "../../api";
 import { ROUTES } from "../../constants/routes";
-import { BackgroundJobPanel } from "../BgJobPanel";
 import { CreateNewQueryModal } from "./CreateNewQueryModal";
 import { QueryCard } from "./QueryCard";
 
@@ -32,7 +29,6 @@ export function RequestsPage() {
 					/>
 				))}
 			</div>
-			<BackgroundJobPanel />
 			<CreateNewQueryModal
 				open={isCreateNewQueryModalOpen}
 				onCancel={() => setIsCreateNewQueryModalOpen(false)}

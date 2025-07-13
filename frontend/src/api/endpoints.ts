@@ -1,13 +1,17 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
-import { bgJobIdAtom } from "../atoms/bgJobAtom";
+import { unresolvedBgJobIdAtom } from "../atoms/bgJobAtom";
+import { queryClient } from "../main";
+import type { BgJob } from "../types/BackendTypes";
 import {
 	createNewQueryBgJob,
+	getAllBgJobs,
 	getAllQueries,
 	getAllRecipes,
 	getBgJob,
 	getQueryById,
 	getRecipesByQueryId,
+	updateBgJobResolved,
 } from "./api-functions";
 
 function useAllRecipes() {
@@ -48,13 +52,36 @@ function useGetBgJob(jobId: string | undefined) {
 }
 
 function useStartNewQueryBgJob() {
-	const [, setBgJobId] = useAtom(bgJobIdAtom);
+	const [, setUnresolvedBgJobIds] = useAtom(unresolvedBgJobIdAtom);
 	return useMutation({
 		mutationFn: ({ userEmail, query }: { userEmail: string; query: string }) =>
 			createNewQueryBgJob(userEmail, query),
 		onSuccess: ({ job_id: jobId }) => {
-			setBgJobId(jobId);
+			setUnresolvedBgJobIds((prev) => [...prev, jobId]);
+			queryClient.invalidateQueries({ queryKey: ["bgJobs"] });
 		},
+	});
+}
+
+function useUpdateBgJobResolved() {
+	return useMutation({
+		mutationFn: ({
+			jobId,
+			isUserResolved,
+		}: {
+			jobId: string;
+			isUserResolved: boolean;
+		}) => updateBgJobResolved(jobId, isUserResolved),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["bgJobs"] });
+		},
+	});
+}
+
+function useGetAllBgJobs(query: Record<string, unknown>) {
+	return useQuery({
+		queryKey: ["bgJobs", query],
+		queryFn: () => getAllBgJobs(query),
 	});
 }
 
@@ -65,4 +92,6 @@ export {
 	useGetRecipesByQueryId,
 	useGetBgJob,
 	useStartNewQueryBgJob,
+	useUpdateBgJobResolved,
+	useGetAllBgJobs,
 };
