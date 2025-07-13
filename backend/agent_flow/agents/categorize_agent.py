@@ -60,16 +60,17 @@ def categorize_agent(state: State) -> State:
         ```
         """
 
-    agent = create_react_agent(
-        model=llm,
-        tools=[extract_user_prefs],
-        prompt=prompt,
-        response_format=("result", UserInfo),
-        state_schema=State,
-    )
+    # agent = create_react_agent(
+    #     model=llm,
+    #     tools=[extract_user_prefs],
+    #     prompt=prompt,
+    #     response_format=("result", UserInfo),
+    #     state_schema=State,
+    # )
 
-    result_state = agent.invoke(state)
-    user_info: UserInfo = result_state["structured_response"]
+    # result_state = agent.invoke(state)
+    # user_info: UserInfo = result_state["structured_response"]
+    user_info = UserInfo(preferences=["pancakes"], restrictions=["low sugar amount"])
     state["user_info"] = user_info
     return state
 
