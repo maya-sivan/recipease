@@ -1,10 +1,12 @@
-from typing import List
+from typing import Any, List
 from agent_flow.custom_types.agent_types import RawRecipeContent, State
 from langchain_openai import ChatOpenAI
 from shared.models import ModifiedRecipeContentList
 from langchain_core.tools.simple import Tool
 from langgraph.prebuilt import create_react_agent
 from langchain_tavily import TavilySearch, TavilyCrawl
+from langchain_core.tools import tool
+from langsmith.wrappers import wrap_openai
 
 
 def recipe_modifier_agent(state: State) -> State:
@@ -12,46 +14,37 @@ def recipe_modifier_agent(state: State) -> State:
 
     llm = ChatOpenAI(model="gpt-4.1-nano", temperature=0)
     structured = llm.with_structured_output(ModifiedRecipeContentList, method="function_calling")
-
-    def tavily_search() -> List[str]:
-        print("🔍 Searching for recipes")
-        if(state.user_info is None):
-            raise ValueError("User info is required")
+    
+    @tool
+    def tavily_search(query: str) -> List[str]:
+        """
+        Use this to search for recipe URLs. Input should be a concise query string.
+        """
+        print(f"🔍 Searching for recipes with query: '{query}'")
         
-        recipe_preferences = ", ".join(state.user_info.preferences) if len(state.user_info.preferences) > 0 else ""
-        tool = TavilySearch(
-            query=f"Newest {recipe_preferences} recipes with ingredients and instructions",
-            max_results=4,
+        # TavilySearch returns a list of dicts, so we extract the 'url' from each
+        search_tool = TavilySearch(
+            max_results=10,
             time_range="day",
-            include_domains=["allrecipes.com", "foodnetwork.com", "gimmesomeoven.com"],
-        )
-        urls = tool.invoke()
-        state["recipe_search_urls"] = [res['url'] for res in urls['results']]
-        return state["recipe_search_urls"]
-    search_tool = Tool.from_function(
-        name="tavily_search",
-        description="""
-            Use this to search for top-level recipe URLs based on user preferences. 
-            Use a query like: "Newest {recipe_preferences} recipes with ingredients and instructions".
+         )
+        search_results = search_tool.invoke({"query": query})
+        urls = [res.get("url", "") for res in search_results.get("results", [])]
+        
+        return urls
 
-            Use the following:
-            - max_results = 4
-            - time_range = "day"
-            - include_domains = ["allrecipes.com", "foodnetwork.com", "gimmesomeoven.com"]
 
-            Input: query string
-            Output: list of recipe URLs
-            """,
-        func=tavily_search
-    )
-
-    def tavily_crawl() -> List[RawRecipeContent]:
-        print("🕸️ Crawling URLs")
+    @tool
+    def tavily_crawl(urls: List[str]) -> List[RawRecipeContent]:
+        """
+        Use this to crawl the recipe URLs obtained from tavily_search.
+        Takes a list of recipe page URLs and returns their content.
+        """
+        print(f"🕸️ Crawling {len(urls)} URLs one at a time...")
         all_recipes: List[RawRecipeContent] = []
-        for url in state["recipe_search_urls"]:
+
+        for url in urls:
             print(f"\tCrawling {url}")
-            url_raw_contents = TavilyCrawl(
-                url=url,
+            crawl_tool = TavilyCrawl(
                 max_depth=1,
                 max_breadth=5,
                 limit=3,
@@ -59,6 +52,7 @@ def recipe_modifier_agent(state: State) -> State:
                 extract_depth="basic",
                 include_images=True
             )
+            url_raw_contents = crawl_tool.invoke({"url": url})
             for entry in url_raw_contents['results']:
                 rc = RawRecipeContent(
                     raw_content=entry.get("raw_content", ""),
@@ -66,28 +60,8 @@ def recipe_modifier_agent(state: State) -> State:
                     image_urls=entry.get("images", []) or []
                 )
                 all_recipes.append(rc)
-        state["recipe_contents"] = all_recipes
-        return state["recipe_contents"]
+        return all_recipes
 
-    crawl_tool = Tool.from_function(
-        name="tavily_crawl",
-        description="""
-            Use this to crawl the recipe URLs obtained from tavily_search.
-            Takes a list of recipe page URLs and returns their content.
-
-            Crawl parameters:
-            - max_depth = 1
-            - max_breadth = 5
-            - limit = 3
-            - select_paths = ["/recipe/.*", "/recipes/.*"]
-            - extract_depth = "basic"
-            - include_images = True
-
-            Input: list of URLs
-            Output: list of objects with raw_content, page_url, image_urls
-            """,
-        func=tavily_crawl
-    )
     def call_llm(query: str) -> ModifiedRecipeContentList:
         return structured.invoke(query)
 
@@ -96,7 +70,7 @@ def recipe_modifier_agent(state: State) -> State:
         func=call_llm,
         name="recipe_modifier_agent",
         description="""
-            Use this to select the top 2 easiest-to-modify recipes from a list and rewrite them based on user restrictions.
+            Use this to select the top 2 recipes that have enough content (ingredients, insturctions, image url) and are the easiest-to-modify from a list and rewrite them based on user restrictions.
 
             Input:
             - recipe_contents: list of {raw_content, page_url, image_urls}
@@ -129,15 +103,14 @@ def recipe_modifier_agent(state: State) -> State:
 
         1. **tavily_search**
         - Use this to find new recipes.
-        - Input: A string query, such as:  
-            `"Newest {recipe_preferences} recipes with ingredients and instructions"`
+        - Input: A string query, with this exact format:  
+            `"What are the latest {recipe_preferences} recipes with ingredients and instructions?"`
         - Parameters:  
-            - max_results = 4  
+            - max_results = 10  
             - time_range = "day"  
-            - include_domains = ["allrecipes.com", "foodnetwork.com", "gimmesomeoven.com"]
         - Output: A list of recipe URLs.
 
-        2. **crawl_agent**
+        2. **tavily_crawl**
         - Use this to extract full recipe content from URLs.
         - Input: A list of URLs from tavily_search.
         - Crawl Parameters:  
@@ -161,7 +134,7 @@ def recipe_modifier_agent(state: State) -> State:
             - `notes` explaining substitutions
             - `image_url` (from the original recipe page - must point to a real, valid URL)
             - `recipe_title` (2–5 words)
-            - `relevant_preferences` (subset of user_preferences, NEVER contains any values from user_restrictions, NEVER new values)
+            - `relevant_preferences` (subset of user_preferences, NEVER contains any values from user_restrictions, NEVER contains values that are not in user_preferences)
 
         ---
 
@@ -216,15 +189,15 @@ def recipe_modifier_agent(state: State) -> State:
 
     agent = create_react_agent(
         model=llm,
-        tools=[modify_recipe, search_tool, crawl_tool],
+        tools=[tavily_search, tavily_crawl, modify_recipe],
         prompt=prompt,
         response_format=("result", ModifiedRecipeContentList),
         state_schema=State,
     )
 
     result_state = agent.invoke(state)
-    print(result_state)
     recipe_contents: ModifiedRecipeContentList = result_state["structured_response"]
     state["modified_recipe_contents"] = recipe_contents.modified_recipe_contents
     return state
+
 

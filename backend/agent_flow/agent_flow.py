@@ -44,8 +44,6 @@ class MasterAgent:
                 query_id=None,
                 query=query,
                 user_info=None,
-                recipe_search_urls=[],
-                recipe_contents=[],
                 user_email=user_email,
             )
             raw_result = self.workflow.invoke(initial_state)
@@ -73,8 +71,6 @@ class MasterAgent:
                 query_id=query_id,
                 query=saved_data.query,
                 user_info=saved_data.user_info,
-                recipe_search_urls=[],
-                recipe_contents=[],
                 user_email=saved_data.user_email,
             )
 
