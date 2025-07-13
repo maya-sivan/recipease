@@ -2,9 +2,10 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { unresolvedBgJobIdAtom } from "../atoms/bgJobAtom";
 import { queryClient } from "../main";
-import type { DataQueryParams } from "../types";
+import type { DataQueryParams, Recipe } from "../types";
 import {
 	createNewQueryBgJob,
+	exportRecipe,
 	getAllBgJobs,
 	getAllQueries,
 	getAllRecipes,
@@ -100,6 +101,12 @@ function useGetBgJobsCount(filters: Record<string, unknown>) {
 	});
 }
 
+function useExportRecipe() {
+	return useMutation({
+		mutationFn: (recipe: Recipe) => exportRecipe(recipe),
+	});
+}
+
 export {
 	useAllRecipes,
 	useAllQueries,
@@ -110,4 +117,5 @@ export {
 	useUpdateBgJobResolved,
 	useGetAllBgJobs,
 	useGetBgJobsCount,
+	useExportRecipe,
 };

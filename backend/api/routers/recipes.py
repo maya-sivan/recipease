@@ -1,6 +1,7 @@
-from ..helpers.utils import convert_str_to_object_id
+from ..helpers.exports import recipe_to_text
+from api.helpers.utils import convert_str_to_object_id
 from shared.models import Recipe
-from fastapi import APIRouter, Request, HTTPException, status
+from fastapi import APIRouter, Request, HTTPException, status, Response
 from typing import List
 
 
@@ -24,3 +25,10 @@ def find_recipes_by_query_id(query_id: str, request: Request):
     if (recipes := list(request.app.database["recipes"].find({"query_id": query_id}))) is not None:
         return recipes
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Recipes with query ID {query_id} not found")
+
+@recipe_router.post("/export/txt", response_class=Response)
+async def export_text(recipe: Recipe, request: Request):
+    text = recipe_to_text(recipe) 
+    file_name = f"{"_".join(recipe.recipe_content.recipe_title.split(" "))}.txt"
+    headers = {"Content-Disposition": f'attachment; filename="{file_name}"'}
+    return Response(content=text, media_type="text/plain", headers=headers)

@@ -119,6 +119,41 @@ async function getBgJobsCount(
 	return await response.json();
 }
 
+async function exportRecipe(recipe: Recipe): Promise<void> {
+	try {
+		const response = await fetch(`${BACKEND_API_URL}/recipe/export/txt`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(recipe),
+		});
+
+		if (!response.ok) {
+			throw new Error(`Export failed: ${response.status}`);
+		}
+
+		const blob = await response.blob();
+		let filename = "recipe.txt";
+		const disposition = response.headers.get("Content-Disposition");
+		if (disposition) {
+			const match = disposition.match(/filename\*?=['"]?([^'";]+)['"]?/);
+			if (match) {
+				filename = decodeURIComponent(match[1]);
+			}
+		}
+
+		const url = window.URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = filename;
+		document.body.appendChild(a);
+		a.click();
+		a.remove();
+		window.URL.revokeObjectURL(url);
+	} catch (err) {
+		console.error("Download error:", err);
+	}
+}
+
 export {
 	getAllRecipes,
 	getAllQueries,
@@ -129,4 +164,5 @@ export {
 	updateBgJobResolved,
 	getAllBgJobs,
 	getBgJobsCount,
+	exportRecipe,
 };
