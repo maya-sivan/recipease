@@ -6,12 +6,12 @@ from langchain_core.tools.simple import Tool
 from langgraph.prebuilt import create_react_agent
 from langchain_tavily import TavilySearch, TavilyCrawl
 from langchain_core.tools import tool
-
+from agent_flow.setup import OPEN_AI_MODEL
 
 def recipe_modifier_agent(state: State) -> State:
     print("🧠 Recipe Modifier Agent")
 
-    llm = ChatOpenAI(model="gpt-4.1-nano", temperature=0)
+    llm = ChatOpenAI(model=OPEN_AI_MODEL, temperature=0)
     structured = llm.with_structured_output(ModifiedRecipeContentList, method="function_calling")
     
     @tool

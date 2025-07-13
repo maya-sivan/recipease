@@ -3,10 +3,11 @@ from langchain_openai import ChatOpenAI
 from shared.models import UserInfo
 from langchain_core.tools.simple import Tool
 from langgraph.prebuilt import create_react_agent
+from agent_flow.setup import OPEN_AI_MODEL
 
 def categorize_agent(state: State) -> State:
     print("🔍 Categorize Agent")
-    llm = ChatOpenAI(model="gpt-4.1-nano", temperature=0)
+    llm = ChatOpenAI(model=OPEN_AI_MODEL, temperature=0)
     structured = llm.with_structured_output(UserInfo)
 
     def call_llm(query: str) -> UserInfo:
@@ -59,17 +60,16 @@ def categorize_agent(state: State) -> State:
         ```
         """
 
-    # agent = create_react_agent(
-    #     model=llm,
-    #     tools=[extract_user_prefs],
-    #     prompt=prompt,
-    #     response_format=("result", UserInfo),
-    #     state_schema=State,
-    # )
+    agent = create_react_agent(
+        model=llm,
+        tools=[extract_user_prefs],
+        prompt=prompt,
+        response_format=("result", UserInfo),
+        state_schema=State,
+    )
 
-    # result_state = agent.invoke(state)
-    # user_info: UserInfo = result_state["structured_response"]
-    user_info = UserInfo(preferences=["kung pao chicken"], restrictions=["vegetarian"])
+    result_state = agent.invoke(state)
+    user_info: UserInfo = result_state["structured_response"]
     state["user_info"] = user_info
     return state
 
