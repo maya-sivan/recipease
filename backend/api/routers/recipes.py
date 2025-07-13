@@ -9,7 +9,7 @@ recipe_router = APIRouter()
 
 @recipe_router.get("/all", response_description="List all recipes", response_model=List[Recipe])
 def list_recipes(request: Request):
-    recipes = list(request.app.database["recipes"].find(limit=3))
+    recipes = list(request.app.database["recipes"].find(limit=50))
     return recipes
 
 @recipe_router.get("/{id}", response_description="Get a single recipe by id", response_model=Recipe)
