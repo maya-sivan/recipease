@@ -19,6 +19,7 @@ app.add_middleware(
     allow_origins=[config['FRONTEND_URL']],
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition"]
 )
 
 @app.on_event("startup")
