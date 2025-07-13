@@ -21,18 +21,17 @@ def save_query_to_db(query: str, user_info: UserInfo, user_email: str) -> str:
   return str(result.inserted_id)
 
 
-def save_recipes_to_db(query_id: str, recipes: List[ModifiedRecipeContent], restrictions: List[str]) -> None:
-    for recipe in recipes:
-         recipe_object = Recipe(
-            query_id=query_id,
-            restrictions=restrictions,
-            found_at=datetime.now(),
-            recipe_content=recipe
-         )
-         try:
-            result = recipes_collection.insert_one(recipe_object.model_dump())
-         except Exception as e:
-            print(f"Error saving recipe to db: {e}")
-            raise
-         print(f"Recipe saved to db with id: {result.inserted_id}")
-         
+def save_recipe_to_db(query_id: str, recipe: ModifiedRecipeContent, restrictions: List[str]) -> None:
+    recipe_object = Recipe(
+      query_id=query_id,
+      restrictions=restrictions,
+      found_at=datetime.now(),
+      recipe_content=recipe
+    )
+    try:
+      result = recipes_collection.insert_one(recipe_object.model_dump())
+    except Exception as e:
+      print(f"Error saving recipe to db: {e}")
+      raise
+    print(f"Recipe saved to db with id: {result.inserted_id}")
+    

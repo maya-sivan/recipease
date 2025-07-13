@@ -34,8 +34,6 @@ class ModifiedRecipeContent(BaseModel):
         if isinstance(v, str):
             return [v]
         return v
-class ModifiedRecipeContentList(BaseModel):
-    modified_recipe_contents: List[ModifiedRecipeContent]
 
 class Query(BaseModel):
    user_email: str
