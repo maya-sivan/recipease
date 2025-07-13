@@ -67,6 +67,8 @@ class MasterAgent:
                 raise e
 
             initial_state = State(
+                messages=[HumanMessage(content=saved_data.query)],
+                remaining_steps=3,
                 is_new_query=False,
                 query_id=query_id,
                 query=saved_data.query,
