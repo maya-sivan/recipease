@@ -1,14 +1,12 @@
-import {
-	HomeOutlined,
-	InfoCircleOutlined,
-	UnorderedListOutlined,
-} from "@ant-design/icons";
+import { HomeOutlined, UnorderedListOutlined } from "@ant-design/icons";
 import { Button, Layout, Menu, Typography } from "antd";
 import type React from "react";
 import { useState } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { ROUTES } from "../constants";
 import { BackgroundJobPanel } from "./BgJobPanel";
+import { ErrorFallback } from "./ErrorFallback";
 import { CreateNewQueryModal } from "./Queries/CreateNewQueryModal";
 
 const { Content, Sider, Header } = Layout;
@@ -38,76 +36,80 @@ export const AppLayout: React.FC = () => {
 
 	return (
 		<Layout style={{ minHeight: "100vh" }}>
-			<Sider
-				collapsible
-				collapsed={collapsed}
-				onCollapse={setCollapsed}
-				theme="light"
-			>
-				<Menu
+			<ErrorBoundary FallbackComponent={ErrorFallback}>
+				<Sider
+					collapsible
+					collapsed={collapsed}
+					onCollapse={setCollapsed}
 					theme="light"
-					mode="inline"
-					selectedKeys={[currentPath]}
-					items={menuItems}
-					onClick={({ key }) => navigate(key)}
-				/>
-			</Sider>
-
-			<Layout>
-				<Header
-					style={{
-						padding: "10px 24px",
-						background: "transparent",
-						userSelect: "none",
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "space-between",
-						position: "relative",
-					}}
 				>
-					<div style={{ flex: 1 }}></div>
+					<Menu
+						theme="light"
+						mode="inline"
+						selectedKeys={[currentPath]}
+						items={menuItems}
+						onClick={({ key }) => navigate(key)}
+					/>
+				</Sider>
 
-					<Typography.Title
-						level={1}
+				<Layout>
+					<Header
 						style={{
-							color: "#0952ab",
-							textAlign: "center",
-							position: "absolute",
-							left: "50%",
-							transform: "translateX(-50%)",
-							margin: 0,
-							fontWeight: "bold",
+							padding: "10px 24px",
+							background: "transparent",
+							userSelect: "none",
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "space-between",
+							position: "relative",
 						}}
 					>
-						{menuItems.find((item) => item.key === currentPath)?.label}
-					</Typography.Title>
+						<div style={{ flex: 1 }}></div>
 
-					<div style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
-						<Button
-							type="primary"
-							onClick={() => setIsCreateNewQueryModalOpen(true)}
+						<Typography.Title
+							level={1}
+							style={{
+								color: "#0952ab",
+								textAlign: "center",
+								position: "absolute",
+								left: "50%",
+								transform: "translateX(-50%)",
+								margin: 0,
+								fontWeight: "bold",
+							}}
 						>
-							Create New Query
-						</Button>
-					</div>
-				</Header>
-				<Content
-					style={{
-						margin: 24,
-						backgroundColor: "#e1ecf2",
-						border: "1px solid #b2d8ed",
-						borderRadius: "10px",
-					}}
-				>
-					<BackgroundJobPanel />
+							{menuItems.find((item) => item.key === currentPath)?.label}
+						</Typography.Title>
 
-					<CreateNewQueryModal
-						open={isCreateNewQueryModalOpen}
-						onCancel={() => setIsCreateNewQueryModalOpen(false)}
-					/>
-					<Outlet />
-				</Content>
-			</Layout>
+						<div
+							style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}
+						>
+							<Button
+								type="primary"
+								onClick={() => setIsCreateNewQueryModalOpen(true)}
+							>
+								Create New Query
+							</Button>
+						</div>
+					</Header>
+					<Content
+						style={{
+							margin: 24,
+							backgroundColor: "#e1ecf2",
+							border: "1px solid #b2d8ed",
+							borderRadius: "10px",
+						}}
+					>
+						<BackgroundJobPanel />
+
+						<CreateNewQueryModal
+							open={isCreateNewQueryModalOpen}
+							onCancel={() => setIsCreateNewQueryModalOpen(false)}
+						/>
+						<Outlet />
+					</Content>
+				</Layout>
+			</ErrorBoundary>
 		</Layout>
 	);
 };
