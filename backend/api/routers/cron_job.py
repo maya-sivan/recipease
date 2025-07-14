@@ -31,6 +31,6 @@ async def process_recent_queries(request: Request, x_cron_secret: str = Header(N
     })
     for query in queries_created_before_most_recent_run:
         print(f"Cron job running query {query['_id']}")
-        # master = MasterAgent()
-        # master.run_scheduled_query(query_id=query["_id"])
+        master = MasterAgent()
+        master.run_scheduled_query(query_id=query["_id"])
     return "OK", 200
