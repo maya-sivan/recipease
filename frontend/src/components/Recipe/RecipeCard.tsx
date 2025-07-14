@@ -20,13 +20,8 @@ export function RecipeCard({
 	return (
 		<Card
 			title={
-				<div className="flex flex-row gap-2 justify-between w-full">
-					<Typography.Title
-						level={4}
-						className="max-w-[70%] truncate text-ellipsis"
-					>
-						{recipe.recipe_content.recipe_title}
-					</Typography.Title>
+				<div className="flex flex-row gap-2 justify-between w-[80%]">
+					<span className="truncate">{recipe.recipe_content.recipe_title}</span>
 					<div className="flex gap-2">
 						<Button
 							type="primary"

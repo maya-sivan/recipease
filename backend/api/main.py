@@ -48,10 +48,9 @@ async def process_recent_queries():
         "created_at": {"$lt": time_threshold}, # Don't re-run newer queries that were created after the most recent run
     })
     for query in queries_created_before_most_recent_run:
-        # master = MasterAgent()
-        # master.run_scheduled_query(query_id=query["_id"])
-        print("placeholder for cron job")
-        #TODO: uncomment to run cron job
+        print(f"Running query {query['_id']}")
+        master = MasterAgent()
+        master.run_scheduled_query(query_id=query["_id"])
 
 @app.on_event("shutdown")
 def shutdown_db_client():
