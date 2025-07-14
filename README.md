@@ -52,7 +52,7 @@
 
 ## 🚀 Usage
 
-- Visit the frontend (e.g., `http://localhost:3000`) to interact with the app.
+- Visit the frontend (e.g., `http://localhost:8080`) to interact with the app.
 - Submit a query describing your food preferences and dietary needs ("Create New Query" button at the top).
 - Follow background job status to see your query status. 
 - Access your queries and see their relevant content (new content for each query gets generated daily by a cron job).
