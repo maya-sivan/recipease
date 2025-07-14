@@ -35,6 +35,18 @@ class ModifiedRecipeContent(BaseModel):
             return [v]
         return v
 
+   @field_validator("image_url", mode="before")
+   @classmethod
+   def validate_image_url(cls, v):
+       fallback_url = "https://1000logos.net/question-mark/"
+       if not v or not isinstance(v, str):
+            return fallback_url
+       if not (v.startswith("http://") or v.startswith("https://")):
+            return fallback_url
+       if not v.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp")):
+            return fallback_url
+       return v
+
 class Query(BaseModel):
    user_email: str
    query: str
