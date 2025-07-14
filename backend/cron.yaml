@@ -3,4 +3,4 @@ cron:
   url: /cron_job/run
   schedule: every 24 hours
   headers:
-    X-Cron-Secret: my-cron-job
+    X-Cron-Secret:${CRON_SECRET}
