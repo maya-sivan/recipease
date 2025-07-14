@@ -1,6 +1,7 @@
 import { Form, Modal, Typography } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { useStartNewQueryBgJob } from "../../api";
+import { useUser } from "../../context";
 
 export function CreateNewQueryModal({
 	open,
@@ -13,12 +14,14 @@ export function CreateNewQueryModal({
 
 	const { mutate: startNewQueryBgJob, isPending } = useStartNewQueryBgJob();
 
+	const { userEmail } = useUser();
+
 	const handleOk = async () => {
 		try {
 			const values = await form.validateFields();
 			startNewQueryBgJob(
 				{
-					userEmail: "mayasivannj@gmail.com",
+					userEmail,
 					query: values.query,
 				},
 				{

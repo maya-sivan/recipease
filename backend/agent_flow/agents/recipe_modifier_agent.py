@@ -170,7 +170,7 @@ def recipe_modifier_agent(state: State) -> State:
                     - ## Ingredients  
                     - ## Directions  
                 - `notes`: describe changes made to ingredients or method
-                - `image_url`: a valid image URL from `image_urls` or `raw_content`
+                - `image_url`: a valid image URL from `image_urls` or `raw_content` (only set it if the url leads to a real image. Otherwise, set it to None)
                 - `recipe_title`: short 2–5 word name
                 - `relevant_preferences`: only values from {preferences}, never from {restrictions} or anything new
 
