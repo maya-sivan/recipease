@@ -1,19 +1,5 @@
-import { Spin } from "antd";
-import { useAllRecipes } from "../../api";
-import { RecipeList } from "./RecipeList";
+import { InfiniteRecipeList } from "./RecipeList";
 
 export function RecipesPage() {
-	const { data, isLoading } = useAllRecipes();
-
-	return (
-		<>
-			{isLoading ? (
-				<div className="flex justify-center items-center h-screen">
-					<Spin size="large" />
-				</div>
-			) : (
-				<RecipeList recipes={data ?? []} />
-			)}
-		</>
-	);
+	return <InfiniteRecipeList />;
 }

@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { unresolvedBgJobIdAtom } from "../atoms/bgJobAtom";
 import { queryClient } from "../main";
@@ -15,13 +15,30 @@ import {
 	getBgJobsCount,
 	getQueryById,
 	getRecipesByQueryId,
+	getRecipesCount,
 	updateBgJobResolved,
 } from "./api-functions";
 
 function useAllRecipes() {
 	return useQuery({
 		queryKey: ["recipes"],
-		queryFn: getAllRecipes,
+		queryFn: () => getAllRecipes(),
+	});
+}
+
+function useInfiniteRecipes() {
+	return useInfiniteQuery({
+		queryKey: ["recipes", "infinite"],
+		queryFn: ({ pageParam }) => getAllRecipes(pageParam as number, 5),
+		getNextPageParam: (lastPage, allPages) => {
+			// If we got no items or less than 20 items, we've reached the end
+			if (lastPage.length === 0 || lastPage.length < 5) {
+				return undefined;
+			}
+			// Return the next skip value
+			return allPages.length * 5;
+		},
+		initialPageParam: 0,
 	});
 }
 
@@ -130,6 +147,7 @@ function useDeleteQuery() {
 
 export {
 	useAllRecipes,
+	useInfiniteRecipes,
 	useAllQueries,
 	useGetQueryById,
 	useGetRecipesByQueryId,

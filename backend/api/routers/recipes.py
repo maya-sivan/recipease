@@ -1,7 +1,7 @@
 from ..helpers.exports import recipe_to_text
 from api.helpers.utils import convert_str_to_object_id
 from shared.models import RecipeResponse
-from fastapi import APIRouter, Request, HTTPException, status, Response
+from fastapi import APIRouter, Request, HTTPException, status, Response, Query
 from typing import List
 
 
@@ -9,9 +9,18 @@ from typing import List
 recipe_router = APIRouter()
 
 @recipe_router.get("/all", response_description="List all recipes", response_model=List[RecipeResponse])
-def list_recipes(request: Request):
-    recipes = list(request.app.database["recipes"].find(limit=50))
+def list_recipes(
+    request: Request,
+    skip: int = Query(default=0, ge=0, description="Number of recipes to skip"),
+    limit: int = Query(default=20, ge=1, le=100, description="Number of recipes to return")
+):
+    recipes = list(request.app.database["recipes"].find().sort("_id", -1).skip(skip).limit(limit))
     return recipes
+
+@recipe_router.get("/count", response_description="Get total count of recipes")
+def get_recipes_count(request: Request):
+    count = request.app.database["recipes"].count_documents({})
+    return {"count": count}
 
 @recipe_router.get("/{id}", response_description="Get a single recipe by id", response_model=RecipeResponse)
 def find_recipe(id: str, request: Request):

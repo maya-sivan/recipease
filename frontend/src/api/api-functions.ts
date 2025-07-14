@@ -2,12 +2,26 @@ import type { BgJob, DataQueryParams, Query, Recipe } from "../types";
 
 const BACKEND_API_URL = import.meta.env.VITE_BACKEND_API_URL;
 
-async function getAllRecipes(): Promise<Recipe[]> {
-	const response = await fetch(`${BACKEND_API_URL}/recipe/all`);
+async function getAllRecipes(
+	skip: number = 0,
+	limit: number = 20,
+): Promise<Recipe[]> {
+	const response = await fetch(
+		`${BACKEND_API_URL}/recipe/all?skip=${skip}&limit=${limit}`,
+	);
 	if (!response.ok) {
 		throw new Error("Failed to fetch recipes");
 	}
 	return await response.json();
+}
+
+async function getRecipesCount(): Promise<number> {
+	const response = await fetch(`${BACKEND_API_URL}/recipe/count`);
+	if (!response.ok) {
+		throw new Error("Failed to fetch recipes count");
+	}
+	const data = await response.json();
+	return data.count;
 }
 
 async function getAllQueries(): Promise<Query[]> {
@@ -188,6 +202,7 @@ async function deleteRecipe(recipeId: string): Promise<{ recipe_id: string }> {
 
 export {
 	getAllRecipes,
+	getRecipesCount,
 	getAllQueries,
 	getQueryById,
 	getRecipesByQueryId,
