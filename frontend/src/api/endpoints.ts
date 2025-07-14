@@ -5,6 +5,8 @@ import { queryClient } from "../main";
 import type { DataQueryParams, Recipe } from "../types";
 import {
 	createNewQueryBgJob,
+	deleteQuery,
+	deleteRecipe,
 	exportRecipe,
 	getAllBgJobs,
 	getAllQueries,
@@ -107,6 +109,25 @@ function useExportRecipe() {
 	});
 }
 
+function useDeleteRecipe() {
+	return useMutation({
+		mutationFn: (recipeId: string) => deleteRecipe(recipeId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["recipes"] });
+		},
+	});
+}
+
+function useDeleteQuery() {
+	return useMutation({
+		mutationFn: (queryId: string) => deleteQuery(queryId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["queries"] });
+			queryClient.invalidateQueries({ queryKey: ["recipes"] }); // Related recipes will be deleted as well
+		},
+	});
+}
+
 export {
 	useAllRecipes,
 	useAllQueries,
@@ -118,4 +139,6 @@ export {
 	useGetAllBgJobs,
 	useGetBgJobsCount,
 	useExportRecipe,
+	useDeleteRecipe,
+	useDeleteQuery,
 };

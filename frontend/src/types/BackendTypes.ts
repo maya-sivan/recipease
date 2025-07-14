@@ -7,6 +7,7 @@ export type Query = {
 };
 
 export type Recipe = {
+	_id: string;
 	query_id: string;
 	recipe_content: ModifiedRecipeContent;
 	restrictions: string[];

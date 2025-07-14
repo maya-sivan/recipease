@@ -1,7 +1,8 @@
-import { DownloadOutlined } from "@ant-design/icons";
-import { Button, Card, Image, Typography } from "antd";
+import { DeleteOutlined, DownloadOutlined } from "@ant-design/icons";
+import { Button, Card, Image, Popconfirm, Space, Typography } from "antd";
 import clsx from "clsx";
-import { useExportRecipe } from "../../api/endpoints";
+import { deleteRecipe } from "../../api/api-functions";
+import { useDeleteRecipe, useExportRecipe } from "../../api/endpoints";
 import type { Recipe } from "../../types";
 import { InfoTag } from "../shared";
 
@@ -15,31 +16,46 @@ export function RecipeCard({
 	onClick?: () => void;
 }) {
 	const { mutate: exportRecipe } = useExportRecipe();
+	const { mutate: deleteRecipe } = useDeleteRecipe();
 	return (
 		<Card
 			title={
-				<div className="flex flex-row gap-2">
+				<div className="flex flex-row gap-2 justify-between w-full">
 					<Typography.Title
 						level={4}
-						className="flex justify-center text-center"
+						className="max-w-[70%] truncate text-ellipsis"
 					>
 						{recipe.recipe_content.recipe_title}
 					</Typography.Title>
-					<div className="flex justify-end">
+					<div className="flex gap-2">
 						<Button
 							type="primary"
-							onClick={() => {
+							onClick={(e) => {
+								e.stopPropagation();
 								exportRecipe(recipe);
 							}}
 							icon={<DownloadOutlined />}
 						/>
+						<Popconfirm
+							title="Delete the recipe"
+							description="Are you sure to delete this recipe?"
+							okText="Yes"
+							cancelText="No"
+							onConfirm={() => {
+								deleteRecipe(recipe._id);
+							}}
+						>
+							<Button type="primary" danger icon={<DeleteOutlined />} />
+						</Popconfirm>
 					</div>
 				</div>
 			}
-			className={clsx(className, "cursor-pointer")}
-			onClick={onClick}
+			className={clsx(className)}
 		>
-			<div className="flex items-center justify-center flex-col hover:opacity-70">
+			<Space
+				onClick={onClick}
+				className="flex items-center justify-center flex-col hover:opacity-70 cursor-pointer"
+			>
 				<Image
 					src={recipe.recipe_content.image_url}
 					alt="Recipe Image"
@@ -60,7 +76,7 @@ export function RecipeCard({
 						color="#adb7c7"
 					/>
 				</div>
-			</div>
+			</Space>
 		</Card>
 	);
 }

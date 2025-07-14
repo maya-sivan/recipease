@@ -76,6 +76,21 @@ class QueryResponse(Query):
     class Config:
         json_encoders = {ObjectId: str}
 
+class RecipeResponse(Recipe):
+    id: str = Field(..., alias="_id")
+
+    @field_validator("id", mode="before")
+    @classmethod
+    def validate_object_id(cls, v):
+        if isinstance(v, ObjectId):
+            return str(v)
+        if isinstance(v, str):
+            return v
+        raise ValueError(f"Invalid ObjectId: {v}")
+
+    class Config:
+        json_encoders = {ObjectId: str}
+
 
 class JobRequest(BaseModel):
     user_email: str
