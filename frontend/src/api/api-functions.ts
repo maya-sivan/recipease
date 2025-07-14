@@ -154,6 +154,38 @@ async function exportRecipe(recipe: Recipe): Promise<void> {
 	}
 }
 
+async function deleteQuery(
+	queryId: string,
+): Promise<{ query_id: string; related_recipes_deleted_count: number }> {
+	try {
+		const response = await fetch(`${BACKEND_API_URL}/query/${queryId}`, {
+			method: "DELETE",
+		});
+		if (!response.ok) {
+			throw new Error("Failed to delete query");
+		}
+		return await response.json();
+	} catch (err) {
+		console.error("Delete query error:", err);
+		throw err;
+	}
+}
+
+async function deleteRecipe(recipeId: string): Promise<{ recipe_id: string }> {
+	try {
+		const response = await fetch(`${BACKEND_API_URL}/recipe/${recipeId}`, {
+			method: "DELETE",
+		});
+		if (!response.ok) {
+			throw new Error("Failed to delete recipe");
+		}
+		return await response.json();
+	} catch (err) {
+		console.error("Delete recipe error:", err);
+		throw err;
+	}
+}
+
 export {
 	getAllRecipes,
 	getAllQueries,
@@ -165,4 +197,6 @@ export {
 	getAllBgJobs,
 	getBgJobsCount,
 	exportRecipe,
+	deleteQuery,
+	deleteRecipe,
 };

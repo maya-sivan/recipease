@@ -41,7 +41,7 @@ export function QueryPage() {
 					{isLoadingRecipes ? (
 						<Spin />
 					) : (queryRecipes?.length || 0) > 0 ? (
-						<div className="flex flex-col gap-4 w-1/2 mt-10">
+						<div className="flex flex-col gap-4 mt-10 items-start">
 							<Typography.Title level={2}>Recipes</Typography.Title>
 							<RecipeList recipes={queryRecipes ?? []} />
 						</div>

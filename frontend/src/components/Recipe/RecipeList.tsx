@@ -8,9 +8,9 @@ export function RecipeList({ recipes }: { recipes: Recipe[] }) {
 
 	return (
 		<div className="flex flex-wrap gap-4 justify-center py-20">
-			{recipes?.map((recipe, index) => (
+			{recipes?.map((recipe) => (
 				<RecipeCard
-					key={index}
+					key={recipe._id}
 					recipe={recipe}
 					className="w-100 h-100"
 					onClick={() => {
