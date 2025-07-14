@@ -38,7 +38,7 @@ class ModifiedRecipeContent(BaseModel):
    @field_validator("image_url", mode="before")
    @classmethod
    def validate_image_url(cls, v):
-       fallback_url = "https://1000logos.net/question-mark/"
+       fallback_url = "https://1000logos.net/wp-content/uploads/2025/03/question-mark.png"
        if not v or not isinstance(v, str):
             return fallback_url
        if not (v.startswith("http://") or v.startswith("https://")):

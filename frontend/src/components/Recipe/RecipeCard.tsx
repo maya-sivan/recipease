@@ -50,7 +50,7 @@ export function RecipeCard({
 					</div>
 				</div>
 			}
-			className={clsx(className)}
+			className={clsx(className, "flex flex-col items-center")}
 		>
 			<Space
 				onClick={onClick}
