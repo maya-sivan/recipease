@@ -6,7 +6,7 @@ import { createContext, useContext, useState } from "react";
 
 const UserContext = createContext({
 	userEmail: "mayasivannj@gmail.com",
-	setUserEmail: (email: string) => {},
+	setUserEmail: (_email: string) => {},
 });
 
 export function useUser() {

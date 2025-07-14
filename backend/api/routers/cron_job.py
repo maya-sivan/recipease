@@ -8,12 +8,13 @@ config = dotenv_values(".env")
 
 cron_job_router = APIRouter()
 
-@cron_job_router.post("/run-cron")
+@cron_job_router.post("/run")
 async def process_recent_queries(request: Request, x_cron_secret: str = Header(None, alias="X-Cron-Secret")):
     """
     This function is used to re-run saved queries to generate new recipes for them.
     It runs every 24 hours.
     It will not re-run queries that were created after the most recent run.
+    There is a separate EBS environment for this cron job to avoid multiple instances of the cron job running at the same time.
     """
     print("***Entered run-cron***")
 

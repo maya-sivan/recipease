@@ -1,7 +1,6 @@
 import { DeleteOutlined, DownloadOutlined } from "@ant-design/icons";
-import { Button, Card, Image, Popconfirm, Space, Typography } from "antd";
+import { Button, Card, Image, Popconfirm, Space } from "antd";
 import clsx from "clsx";
-import { deleteRecipe } from "../../api/api-functions";
 import { useDeleteRecipe, useExportRecipe } from "../../api/endpoints";
 import type { Recipe } from "../../types";
 import { InfoTag } from "../shared";

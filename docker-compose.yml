@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # Backend Service
+  backend:
+    build:
+      context: ./backend 
+      dockerfile: Dockerfile
+    container_name: my-app-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env 
+    ports:
+      - "8000:8000" 
+    volumes:
+      - ./backend:/app 
+    networks:
+      - app-network
+    depends_on:
+      - mongo 
+
+  # Frontend Service 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      # Build-time arguments must be placed inside the 'build' block.
+      args:
+        - VITE_BACKEND_API_URL=${VITE_BACKEND_API_URL}
+    container_name: my-app-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    networks:
+      - app-network
+    depends_on:
+      - backend
+
+  # MongoDB Database Service
+  mongo:
+    image: mongo:latest
+    container_name: my-app-mongo
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local

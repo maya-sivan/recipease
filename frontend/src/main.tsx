@@ -1,12 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import "antd/dist/reset.css";
+import { Provider as JotaiProvider } from "jotai";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { ErrorBoundary } from "react-error-boundary";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-
-import "antd/dist/reset.css";
-import "./app.css";
-import { Provider as JotaiProvider } from "jotai";
 import {
 	AboutPage,
 	AppLayout,
