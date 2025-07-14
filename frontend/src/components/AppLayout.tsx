@@ -1,4 +1,8 @@
-import { HomeOutlined, UnorderedListOutlined } from "@ant-design/icons";
+import {
+	HomeOutlined,
+	InfoCircleOutlined,
+	UnorderedListOutlined,
+} from "@ant-design/icons";
 import { Button, Layout, Menu, Typography } from "antd";
 import type React from "react";
 import { useState } from "react";
@@ -7,7 +11,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { ROUTES } from "../constants";
 import { BackgroundJobPanel } from "./BgJobPanel";
 import { ErrorFallback } from "./ErrorFallback";
-import { CreateNewQueryModal } from "./Queries/CreateNewQueryModal";
+import { CreateNewQueryModal } from "./Queries";
 
 const { Content, Sider, Header } = Layout;
 
@@ -20,7 +24,12 @@ const menuItems = [
 	{
 		key: ROUTES.queries,
 		icon: <UnorderedListOutlined />,
-		label: "Requests",
+		label: "Queries",
+	},
+	{
+		key: ROUTES.about,
+		icon: <InfoCircleOutlined />,
+		label: "About",
 	},
 ];
 

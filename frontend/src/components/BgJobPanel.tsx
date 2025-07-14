@@ -114,7 +114,7 @@ export function BackgroundJobPanel() {
 	return (
 		<>
 			<Drawer
-				title="Background Job"
+				title="Recipe Generation Background Jobs"
 				placement="bottom"
 				height={600}
 				open={open}
@@ -123,27 +123,29 @@ export function BackgroundJobPanel() {
 				}}
 				closable
 			>
-				{isPending || isLoading ? (
-					<Spin tip="Checking..." />
-				) : (
-					<Table
-						dataSource={unresolvedBgJobs}
-						columns={columns}
-						pagination={{
-							pageSize: tableParams.limit,
-							hideOnSinglePage: true,
-							total: bgJobsCount,
-							onChange: (page, pageSize) => {
-								setTableParams({
-									skip: (page - 1) * pageSize,
-									limit: pageSize,
-								});
-							},
-							pageSizeOptions: [5, 10, 20, 50, 100],
-						}}
-						rowKey="job_id"
-					/>
-				)}
+				<div>
+					{isPending || isLoading ? (
+						<Spin tip="Checking..." />
+					) : (
+						<Table
+							dataSource={unresolvedBgJobs}
+							columns={columns}
+							pagination={{
+								pageSize: tableParams.limit,
+								hideOnSinglePage: true,
+								total: bgJobsCount,
+								onChange: (page, pageSize) => {
+									setTableParams({
+										skip: (page - 1) * pageSize,
+										limit: pageSize,
+									});
+								},
+								pageSizeOptions: [5, 10, 20, 50, 100],
+							}}
+							rowKey="job_id"
+						/>
+					)}
+				</div>
 			</Drawer>
 
 			{!open && (

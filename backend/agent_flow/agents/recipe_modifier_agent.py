@@ -4,7 +4,6 @@ from langchain_core.prompts import PromptTemplate
 from agent_flow.custom_types.agent_types import RawRecipeContent, State
 from langchain_openai import ChatOpenAI
 from shared.models import ModifiedRecipeContent
-from langchain_core.tools.simple import Tool
 from langgraph.prebuilt import create_react_agent
 from langchain_tavily import TavilySearch, TavilyCrawl
 from langchain_core.tools import tool

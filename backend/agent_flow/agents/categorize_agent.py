@@ -1,10 +1,8 @@
-from typing import List
 from langchain_core.prompts import PromptTemplate
 from langchain_core.tools import tool
 from agent_flow.custom_types.agent_types import State
 from langchain_openai import ChatOpenAI
 from shared.models import UserInfo
-from langchain_core.tools.simple import Tool
 from langgraph.prebuilt import create_react_agent
 from agent_flow.setup import OPEN_AI_MODEL
 

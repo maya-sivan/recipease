@@ -1,4 +1,4 @@
-import { Spin } from "antd";
+import { Empty, Spin } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useAllQueries } from "../../api";
 import { ROUTES } from "../../constants";
@@ -13,6 +13,10 @@ export function QueriesPage() {
 			{isLoading ? (
 				<div className="flex justify-center items-center h-screen">
 					<Spin size="large" />
+				</div>
+			) : data && data.length === 0 ? (
+				<div className="flex justify-center items-center h-screen">
+					<Empty description="No queries found" />
 				</div>
 			) : (
 				<div className="flex flex-wrap gap-4 justify-center py-20">

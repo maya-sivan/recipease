@@ -1,8 +1,4 @@
-import {
-	type Query,
-	QueryClient,
-	QueryClientProvider,
-} from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { ErrorBoundary } from "react-error-boundary";
@@ -10,17 +6,17 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import "antd/dist/reset.css";
 import "./app.css";
-import { notification } from "antd";
 import { Provider as JotaiProvider } from "jotai";
 import {
+	AboutPage,
 	AppLayout,
+	ErrorFallback,
 	globalAtomStore,
+	NotFoundPage,
 	QueriesPage,
 	QueryPage,
 	RecipesPage,
 } from "./components";
-import { ErrorFallback } from "./components/ErrorFallback";
-import { NotFoundPage } from "./components/NotFoundPage";
 import { ROUTES } from "./constants";
 
 export const queryClient = new QueryClient({
@@ -43,6 +39,7 @@ const router = createBrowserRouter([
 			{ path: ROUTES.queries, element: <QueriesPage /> },
 			{ path: ROUTES.query, element: <QueryPage /> },
 			{ path: ROUTES.recipes, element: <RecipesPage /> },
+			{ path: ROUTES.about, element: <AboutPage /> },
 			{ path: "*", element: <NotFoundPage /> },
 		],
 	},
