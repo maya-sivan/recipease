@@ -28,14 +28,14 @@ def startup_db_client():
     app.database = app.mongodb_client[config["DB_NAME"]]
     print("Connected to the MongoDB database!")
 
-run_frequency = 60 * 60 * 3 # 3 hours
+run_frequency = 60 * 60 * 24 # 1 day
 
 @app.on_event("startup")
 @repeat_every(seconds=run_frequency, raise_exceptions=True)
 async def process_recent_queries():
     """
     This function is used to re-run saved queries to generate new recipes for them.
-    It runs every 3 hours.
+    It runs every 24 hours.
     It will not re-run queries that were created after the most recent run.
     """
     print("***CRON JOB RUNNING***")
