@@ -2,7 +2,7 @@
 
 ## 📝 Project Summary
 
-**RecipEase** is a full-stack application that helps users generate and categorize recipes using intelligent agents. Users can input preferences or constraints (like dietary needs), and the system will return tailored recipes along with explanations and saved queries. Those saved queries will run on a daily basis, making the user able to find the best recipes over time.
+**RecipEase** is a full-stack application that helps users generate and categorize recipes using intelligent agents. Users can input preferences or constraints (like dietary needs), and the system will return tailored recipes along with explanations and saved queries. Those saved queries will run on a daily basis via a cron job, making the user able to find the best recipes over time.
 
 ---
 
