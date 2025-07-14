@@ -28,7 +28,7 @@
 
 4. Start the FastAPI server:
    ```bash
-   uvicorn api.main:app --reload
+   uvicorn api.main:app
    ```
 
 ### Frontend
