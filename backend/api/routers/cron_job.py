@@ -1,16 +1,13 @@
 from datetime import datetime, timedelta, timezone
-from dotenv import dotenv_values
 from ..helpers.utils import background_job
 from fastapi import APIRouter, Request, Header, BackgroundTasks
 from pymongo.collection import Collection
 from uuid import uuid4
 
-config = dotenv_values(".env")
-
 cron_job_router = APIRouter()
 
 @cron_job_router.post("/run")
-async def process_recent_queries(background_tasks: BackgroundTasks, request: Request, x_cron_secret: str = Header(None, alias="X-Cron-Secret")):
+async def process_recent_queries(background_tasks: BackgroundTasks, request: Request):
     """
     This function is used to re-run saved queries to generate new recipes for them.
     It runs every 24 hours.
@@ -18,9 +15,6 @@ async def process_recent_queries(background_tasks: BackgroundTasks, request: Req
     There is a separate EBS environment for this cron job to avoid multiple instances of the cron job running at the same time.
     """
     print("***Entered run-cron***")
-
-    if(x_cron_secret != config["CRON_SECRET"]):
-        return "Forbidden", 403
     
     queries_collection: Collection = request.app.database["queries"]
 

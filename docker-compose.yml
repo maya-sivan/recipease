@@ -1,55 +1,35 @@
-version: '3.8'
+
+version: '3.7'
 
 services:
-  # Backend Service
+  # FastAPI Backend Service
   backend:
     build:
-      context: ./backend 
-      dockerfile: Dockerfile
-    container_name: my-app-backend
-    restart: unless-stopped
-    ports:
-      - "8000:8000" 
-    volumes:
-      - ./backend:/app 
-    networks:
-      - app-network
-    depends_on:
-      - mongo 
+      context: ./backend
+    # EB ignores the host port mapping, but this is useful for local testing.
+    # The container will expose port 8000.
+    expose:
+      - '8000'
+    environment:
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MONOGODB_URI=${MONOGODB_URI}
+      - DB_NAME=${DB_NAME}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - OPEN_AI_MODEL=${OPEN_AI_MODEL}
+      - LANGSMITH_TRACING=${LANGSMITH_TRACING}
 
-  # Frontend Service 
+  # React Frontend + Nginx Proxy Service
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
-      # Build-time arguments must be placed inside the 'build' block.
       args:
         - VITE_BACKEND_API_URL=${VITE_BACKEND_API_URL}
-    container_name: my-app-frontend
-    restart: unless-stopped
     ports:
-      - "8080:80"
-    networks:
-      - app-network
+      # This is CRITICAL. It maps port 80 of the host (the EC2 instance)
+      # to port 80 of this container. This makes our Nginx server
+      # accessible to the outside world via the EB Load Balancer.
+      - '80:80'
     depends_on:
+      # Ensures the backend container is started before the frontend
       - backend
-
-  # MongoDB Database Service
-  mongo:
-    image: mongo:latest
-    container_name: my-app-mongo
-    restart: unless-stopped
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
-
-volumes:
-  mongo-data:
-    driver: local
