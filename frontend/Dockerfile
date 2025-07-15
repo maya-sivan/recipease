@@ -8,7 +8,6 @@ ARG VITE_BACKEND_API_URL
 
 # Set it as an environment variable so the 'npm run build' command can access it
 ENV VITE_BACKEND_API_URL=${VITE_BACKEND_API_URL}
-# --- End of Required Change ---
 
 COPY . .
 RUN npm install
