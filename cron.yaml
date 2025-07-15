@@ -1,6 +1,4 @@
 cron:
-- description: "secure cron job"
-  url: /cron_job/run
-  schedule: every 24 hours
-  headers:
-    X-Cron-Secret:${CRON_SECRET}
+- name: "saved query cron job"
+  url: "/cron_job/run"
+  schedule: "0 0 * * *"
