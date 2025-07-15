@@ -30,6 +30,10 @@ def startup_db_client():
 def shutdown_db_client():
     app.mongodb_client.close()
 
+@app.get("/health")
+def health():
+    return {"status": "ok", "message": "Backend is running"}, 200
+
 app.include_router(recipe_router, tags=["recipes"], prefix="/recipe")
 app.include_router(query_router, tags=["queries"], prefix="/query")
 app.include_router(cron_job_router, tags=["cron_job"], prefix="/cron_job")
