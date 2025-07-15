@@ -16,8 +16,14 @@ services:
       - app-network
     depends_on:
       - mongo 
-    env_file:
-      - ./.env
+    environment:
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MONOGODB_URI=${MONOGODB_URI}
+      - DB_NAME=${DB_NAME}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - OPEN_AI_MODEL=${OPEN_AI_MODEL}
+      - LANGSMITH_TRACING=${LANGSMITH_TRACING}
 
   # Frontend Service 
   frontend:
