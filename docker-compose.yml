@@ -16,6 +16,8 @@ services:
       - app-network
     depends_on:
       - mongo 
+    env_file:
+      - .env
 
   # Frontend Service 
   frontend:
@@ -33,6 +35,8 @@ services:
       - app-network
     depends_on:
       - backend
+    env_file:
+      - .env
 
   # MongoDB Database Service
   mongo:
