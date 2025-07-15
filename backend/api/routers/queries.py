@@ -48,7 +48,7 @@ def start_job(payload: JobRequest, background_tasks: BackgroundTasks, request: R
         "is_resolved": False
     })
     print(f"Starting job {job_id} for user {payload.user_email} with query {payload.query}")
-    background_tasks.add_task(background_job, job_id, payload.user_email, payload.query, request.app.database["background_tasks"])
+    background_tasks.add_task(background_job, job_id=job_id, user_email=payload.user_email, query=payload.query, collection=request.app.database["background_tasks"], query_id=None)
     return {"job_id": job_id}
 
 @query_router.get("/bg-job/{job_id}", response_description="Get a bg job by its ID", response_model=BgJob)

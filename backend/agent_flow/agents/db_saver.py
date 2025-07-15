@@ -17,5 +17,5 @@ def save_data_to_db(state: State) -> State:
       if(state["query_id"] is None):
          raise ValueError("Query id is required")
 
-      save_recipe_to_db(query_id=state["query_id"], recipe=state["modified_recipe_content"], restrictions=state["user_info"].restrictions)
+      save_recipe_to_db(query_id=str(state["query_id"]), recipe=state["modified_recipe_content"], restrictions=state["user_info"].restrictions)
       return state

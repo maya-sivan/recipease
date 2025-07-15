@@ -1,15 +1,16 @@
 from datetime import datetime, timedelta, timezone
-from agent_flow.agent_flow import MasterAgent
 from dotenv import dotenv_values
-from fastapi import APIRouter, Request, Header
+from ..helpers.utils import background_job
+from fastapi import APIRouter, Request, Header, BackgroundTasks
 from pymongo.collection import Collection
+from uuid import uuid4
 
 config = dotenv_values(".env")
 
 cron_job_router = APIRouter()
 
 @cron_job_router.post("/run")
-async def process_recent_queries(request: Request, x_cron_secret: str = Header(None, alias="X-Cron-Secret")):
+async def process_recent_queries(background_tasks: BackgroundTasks, request: Request, x_cron_secret: str = Header(None, alias="X-Cron-Secret")):
     """
     This function is used to re-run saved queries to generate new recipes for them.
     It runs every 24 hours.
@@ -31,6 +32,15 @@ async def process_recent_queries(request: Request, x_cron_secret: str = Header(N
     })
     for query in queries_created_before_most_recent_run:
         print(f"Cron job running query {query['_id']}")
-        master = MasterAgent()
-        master.run_scheduled_query(query_id=query["_id"])
+        job_id = str(uuid4())
+        request.app.database["background_tasks"].insert_one({
+        "job_id": job_id,
+        "user_email": query["user_email"],
+        "query": query["query"],
+        "status": "pending",
+        "created_at": datetime.now(timezone.utc),
+        "is_resolved": False
+        })
+        print(f"Starting job {job_id} for user {query["user_email"]} with query {query["query"]}")
+        background_tasks.add_task(background_job, job_id=job_id, user_email=query["user_email"], query=query["query"], collection=request.app.database["background_tasks"], query_id=query["_id"])
     return "OK", 200
