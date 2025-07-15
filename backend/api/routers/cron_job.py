@@ -1,13 +1,13 @@
 from datetime import datetime, timedelta, timezone
-from dotenv import dotenv_values
+import os
+from dotenv import load_dotenv
 from ..helpers.utils import background_job
 from fastapi import APIRouter, Request, Header, BackgroundTasks
 from pymongo.collection import Collection
 from uuid import uuid4
 
-config = dotenv_values(".env")
-
 cron_job_router = APIRouter()
+load_dotenv()
 
 @cron_job_router.post("/run")
 async def process_recent_queries(background_tasks: BackgroundTasks, request: Request, x_cron_secret: str = Header(None, alias="X-Cron-Secret")):
@@ -19,7 +19,7 @@ async def process_recent_queries(background_tasks: BackgroundTasks, request: Req
     """
     print("***Entered run-cron***")
 
-    if(x_cron_secret != config["CRON_SECRET"]):
+    if(x_cron_secret != os.getenv("CRON_SECRET")):
         return "Forbidden", 403
     
     queries_collection: Collection = request.app.database["queries"]

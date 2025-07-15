@@ -1,19 +1,20 @@
+import os
 import certifi
 from fastapi import FastAPI
-from dotenv import dotenv_values
+from dotenv import load_dotenv
 from pymongo import MongoClient
 from .routers.recipes import recipe_router
 from .routers.queries import query_router
 from .routers.cron_job import cron_job_router
 from fastapi.middleware.cors import CORSMiddleware
 
-config = dotenv_values(".env")
+load_dotenv()
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[config['FRONTEND_URL']],
+    allow_origins=[os.getenv("FRONTEND_URL")],
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["Content-Disposition"]
@@ -21,8 +22,8 @@ app.add_middleware(
 
 @app.on_event("startup")
 def startup_db_client():
-    app.mongodb_client = MongoClient(config["MONOGODB_URI"], tlsCAFile=certifi.where())
-    app.database = app.mongodb_client[config["DB_NAME"]]
+    app.mongodb_client = MongoClient(os.getenv("MONOGODB_URI"), tlsCAFile=certifi.where())
+    app.database = app.mongodb_client[os.getenv("DB_NAME")]
     print("Connected to the MongoDB database!")
 
 @app.on_event("shutdown")
