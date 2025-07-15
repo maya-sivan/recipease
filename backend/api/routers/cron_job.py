@@ -1,12 +1,10 @@
 from datetime import datetime, timedelta, timezone
-import os
 from ..helpers.utils import background_job
 from fastapi import APIRouter, Request, Header, BackgroundTasks
 from pymongo.collection import Collection
 from uuid import uuid4
 
 cron_job_router = APIRouter()
-load_dotenv()
 
 @cron_job_router.post("/run")
 async def process_recent_queries(background_tasks: BackgroundTasks, request: Request):

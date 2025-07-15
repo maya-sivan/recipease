@@ -1,8 +1,10 @@
 import os
 import certifi
+from dotenv.main import logger
 from fastapi import FastAPI
 from dotenv import load_dotenv
-from pymongo import MongoClient
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
 from .routers.recipes import recipe_router
 from .routers.queries import query_router
 from .routers.cron_job import cron_job_router
@@ -22,9 +24,15 @@ app.add_middleware(
 
 @app.on_event("startup")
 def startup_db_client():
-    app.mongodb_client = MongoClient(os.getenv("MONOGODB_URI"), tlsCAFile=certifi.where())
+    app.mongodb_client = MongoClient(os.getenv("MONOGODB_URI"), server_api=ServerApi('1'), tlsAllowInvalidCertificates=True)
+
+    try:
+        app.mongodb_client.admin.command('ping')
+        logger.info("Pinged your deployment. You successfully connected to MongoDB!")
+    except Exception as e:
+        logger.error(f"Error connecting to MongoDB: {e}")
     app.database = app.mongodb_client[os.getenv("DB_NAME")]
-    print("Connected to the MongoDB database!")
+    logger.info("Connected to the MongoDB database!")
 
 @app.on_event("shutdown")
 def shutdown_db_client():

@@ -22,7 +22,7 @@ services:
   # React Frontend + Nginx Proxy Service
   frontend:
     build:
-      context: ./front
+      context: ./frontend
       args:
         - VITE_BACKEND_API_URL=${VITE_BACKEND_API_URL}
     ports:
