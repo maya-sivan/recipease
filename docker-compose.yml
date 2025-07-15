@@ -8,8 +8,6 @@ services:
       dockerfile: Dockerfile
     container_name: my-app-backend
     restart: unless-stopped
-    env_file:
-      - ./backend/.env 
     ports:
       - "8000:8000" 
     volumes:
@@ -41,8 +39,6 @@ services:
     image: mongo:latest
     container_name: my-app-mongo
     restart: unless-stopped
-    env_file:
-      - .env
     ports:
       - "27017:27017"
     volumes:
