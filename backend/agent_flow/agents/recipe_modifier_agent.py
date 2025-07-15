@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import List
 
 from langchain_core.prompts import PromptTemplate
 from agent_flow.custom_types.agent_types import RawRecipeContent, State

@@ -11,7 +11,7 @@ def convert_str_to_object_id(id: str) -> ObjectId:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid ID format")
     return obj_id
 
-def background_job(job_id: str, user_email: str, query: str, collection):
+def background_job(job_id: str, user_email: str, query: str, collection, query_id: str | None = None):
     print(f"Running job for: {user_email} | Query: {query}")
     try:
         collection.update_one(
@@ -23,7 +23,10 @@ def background_job(job_id: str, user_email: str, query: str, collection):
         )
 
         master = MasterAgent()
-        result = master.run_new_query(user_email=user_email, query=query)
+        if query_id:
+            result = master.run_scheduled_query(query_id=query_id)
+        else:
+            result = master.run_new_query(user_email=user_email, query=query)
 
         print(f"Job completed: {result}, now saving to db")
 
