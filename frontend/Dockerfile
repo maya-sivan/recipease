@@ -3,10 +3,10 @@ FROM node:22.17.0 AS builder
 WORKDIR /app
 
 # Declare the build argument that will be passed from docker-compose.yml
-ARG VITE_BACKEND_API_URL
+ARG VITE_BACKEND_PREFIX
 
 # Set it as an environment variable so the 'npm run build' command can access it
-ENV VITE_BACKEND_API_URL=${VITE_BACKEND_API_URL}
+ENV VITE_BACKEND_PREFIX=${VITE_BACKEND_PREFIX}
 
 COPY package*.json ./
 RUN npm install
