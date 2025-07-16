@@ -7,8 +7,6 @@ services:
     image: 914261933179.dkr.ecr.us-west-2.amazonaws.com/eat-with-recipease@sha256:2f2920221032143dc53a0880c9946ef6e619903e3291ad2e4c6ed02d23a832bb
     expose:
       - '8000'
-    env_file:
-      - .env
 
   # React Frontend + Nginx Proxy Service
   frontend:
