@@ -15,7 +15,6 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - MONOGODB_URI=${MONOGODB_URI}
       - DB_NAME=${DB_NAME}
-      - FRONTEND_URL=${FRONTEND_URL}
       - OPEN_AI_MODEL=${OPEN_AI_MODEL}
       - LANGSMITH_TRACING=${LANGSMITH_TRACING}
 
@@ -24,12 +23,8 @@ services:
     build:
       context: ./frontend
       args:
-        - VITE_BACKEND_API_URL=${VITE_BACKEND_API_URL}
+        - VITE_BACKEND_PREFIX=${VITE_BACKEND_PREFIX}
     ports:
-      # This is CRITICAL. It maps port 80 of the host (the EC2 instance)
-      # to port 80 of this container. This makes our Nginx server
-      # accessible to the outside world via the EB Load Balancer.
       - '80:80'
     depends_on:
-      # Ensures the backend container is started before the frontend
       - backend
