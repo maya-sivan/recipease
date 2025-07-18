@@ -5,9 +5,13 @@ from langchain_openai import ChatOpenAI
 from shared.models import UserInfo
 from langgraph.prebuilt import create_react_agent
 from agent_flow.setup import OPEN_AI_MODEL
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def categorize_agent(state: State) -> State:
-    print("🔍 Categorize Agent")
+    logger.info("🔍 Categorize Agent")
 
     @tool
     def categorize_tool(user_info: UserInfo) -> UserInfo:

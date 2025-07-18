@@ -10,6 +10,7 @@ from .routers.queries import query_router
 from .routers.cron_job import cron_job_router
 from fastapi.middleware.cors import CORSMiddleware
 import logging
+from shared.db import MONOGODB_URI
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -29,7 +30,7 @@ app.add_middleware(
 @app.on_event("startup")
 def startup_db_client():
     logger.info("Launching Mongo...")
-    app.mongodb_client = MongoClient(os.getenv("MONOGODB_URI"), server_api=ServerApi('1'), tlsAllowInvalidCertificates=True)
+    app.mongodb_client = MongoClient(MONOGODB_URI, server_api=ServerApi('1'), tlsAllowInvalidCertificates=True)
 
     try:
         app.mongodb_client.admin.command('ping')
@@ -37,7 +38,11 @@ def startup_db_client():
     except Exception as e:
         logger.error(f"Error connecting to MongoDB: {e}")
         raise e
-    app.database = app.mongodb_client[os.getenv("DB_NAME")]
+    db_name = os.getenv("DB_NAME")
+    if db_name is None:
+        logger.error("DB_NAME is not set")
+        
+    app.database = app.mongodb_client[db_name]
     logger.info("Connected to the MongoDB database!")
 
 @app.on_event("shutdown")

@@ -10,8 +10,11 @@ from langchain_core.tools import tool
 from agent_flow.setup import OPEN_AI_MODEL
 import logging
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 def recipe_modifier_agent(state: State) -> State:
-    print("🧠 Recipe Modifier Agent")
+    logger.info("🧠 Recipe Modifier Agent")
 
     if state["user_info"] is None:
         raise ValueError("User info is required")
@@ -22,10 +25,10 @@ def recipe_modifier_agent(state: State) -> State:
         """
         Use this to search for recipe URLs. Input should be a concise query string.
         """
-        print(f"🔍 Searching for recipes")
+        logger.info(f"🔍 Searching for recipes")
         all_urls = []
         for query in queries:
-            print(f"\t🔍 Searching for recipes with query: '{query}'")
+            logger.info(f"\t🔍 Searching for recipes with query: '{query}'")
             search_tool = TavilySearch(
                 max_results=5,
                 search_depth="advanced",
@@ -35,7 +38,7 @@ def recipe_modifier_agent(state: State) -> State:
                 search_results = search_tool.invoke({"query": query})
                 urls = [res.get("url", "") for res in search_results.get("results", [])]
             except Exception as e:
-                logging.warning(f"Error searching for recipes with query: '{query}': {e}")
+                logger.warning(f"Error searching for recipes with query: '{query}': {e}")
                 urls = []
                 continue
         all_urls.extend(urls)
@@ -48,15 +51,15 @@ def recipe_modifier_agent(state: State) -> State:
         Use this to crawl the list of recipe URLs obtained from tavily_search.
         Takes a list of recipe page URLs and returns their content.
         """
-        print(f"🕸️ Crawling {len(urls)} URLs one at a time...")
+        logger.info(f"🕸️ Crawling {len(urls)} URLs one at a time...")
         if(len(urls) == 0):
-            logging.warning(f"No URLs to crawl")
+            logger.warning(f"No URLs to crawl")
             return []
 
         all_recipes: List[RawRecipeContent] = []
 
         for url in urls:
-            print(f"\tCrawling {url}")
+            logger.info(f"\tCrawling {url}")
             crawl_tool = TavilyCrawl(
                 max_depth=2,
                 max_breadth=5,
@@ -68,7 +71,7 @@ def recipe_modifier_agent(state: State) -> State:
                 url_raw_contents = crawl_tool.invoke({"url": url})
                 url_content_result = url_raw_contents.get("results", [])
             except Exception as e:
-                logging.warning(f"Error crawling {url}: {e}")
+                logger.warning(f"Error crawling {url}: {e}")
                 continue
 
             for entry in url_content_result:
@@ -78,7 +81,7 @@ def recipe_modifier_agent(state: State) -> State:
                     image_urls=entry.get("images", []) or []
                 )
                 all_recipes.append(rc)
-        print(f"🕸️ Finished crawling all recipes")
+        logger.info(f"🕸️ Finished crawling all recipes")
         return all_recipes
 
     @tool   
@@ -242,7 +245,7 @@ def recipe_modifier_agent(state: State) -> State:
     result_state = agent.invoke(state)
     validated_result = ModifiedRecipeContent.model_validate(result_state["structured_response"])
     state["modified_recipe_content"] = validated_result
-    print(f"🧠 Recipe Modifier Agent finished")
+    logger.info(f"🧠 Recipe Modifier Agent finished")
     return state
 
 

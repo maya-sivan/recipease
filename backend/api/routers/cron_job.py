@@ -3,6 +3,10 @@ from ..helpers.utils import background_job
 from fastapi import APIRouter, Request, Header, BackgroundTasks
 from pymongo.collection import Collection
 from uuid import uuid4
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 cron_job_router = APIRouter()
 
@@ -14,7 +18,7 @@ async def process_recent_queries(background_tasks: BackgroundTasks, request: Req
     It will not re-run queries that were created after the most recent run.
     There is a separate EBS environment for this cron job to avoid multiple instances of the cron job running at the same time.
     """
-    print("***Entered run-cron***")
+    logger.info("***Entered run-cron***")
     
     queries_collection: Collection = request.app.database["queries"]
 
@@ -25,7 +29,7 @@ async def process_recent_queries(background_tasks: BackgroundTasks, request: Req
         "created_at": {"$lt": time_threshold}, # Don't re-run newer queries that were created after the most recent run
     })
     for query in queries_created_before_most_recent_run:
-        print(f"Cron job running query {query['_id']}")
+        logger.info(f"Cron job running query {query['_id']}")
         job_id = str(uuid4())
         request.app.database["background_tasks"].insert_one({
         "job_id": job_id,
@@ -35,6 +39,6 @@ async def process_recent_queries(background_tasks: BackgroundTasks, request: Req
         "created_at": datetime.now(timezone.utc),
         "is_resolved": False
         })
-        print(f"Starting job {job_id} for user {query["user_email"]} with query {query["query"]}")
+        logger.info(f"Starting job {job_id} for user {query["user_email"]} with query {query["query"]}")
         background_tasks.add_task(background_job, job_id=job_id, user_email=query["user_email"], query=query["query"], collection=request.app.database["background_tasks"], query_id=query["_id"])
     return "OK", 200

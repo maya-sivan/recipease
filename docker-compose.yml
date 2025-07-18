@@ -4,23 +4,19 @@ version: '3.7'
 services:
   # FastAPI Backend Service
   backend:
-    image: 914261933179.dkr.ecr.us-west-2.amazonaws.com/eat-with-recipease@sha256:2f2920221032143dc53a0880c9946ef6e619903e3291ad2e4c6ed02d23a832bb
+    image: 914261933179.dkr.ecr.us-west-2.amazonaws.com/backend:latest
     expose:
       - '8000'
     environment:
-      - TAVILY_API_KEY=${TAVILY_API_KEY}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - MONOGODB_URI=${MONOGODB_URI}
       - DB_NAME=${DB_NAME}
       - OPEN_AI_MODEL=${OPEN_AI_MODEL}
       - LANGSMITH_TRACING=${LANGSMITH_TRACING}
       - LANGSMITH_ENDPOINT=${LANGSMITH_ENDPOINT}
-      - LANGSMITH_API_KEY=${LANGSMITH_API_KEY}
       - LANGSMITH_PROJECT=${LANGSMITH_PROJECT}
 
   # React Frontend + Nginx Proxy Service
   frontend:
-    image: 914261933179.dkr.ecr.us-west-2.amazonaws.com/eat-with-recipease:latest
+    image: 914261933179.dkr.ecr.us-west-2.amazonaws.com/frontend:latest
     ports:
       - '80:80'
     depends_on:

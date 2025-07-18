@@ -1,6 +1,6 @@
 
 from typing import Literal
-
+import logging
 from langchain_core.messages import HumanMessage
 from shared.db import queries_collection
 from .custom_types.agent_types import State
@@ -10,6 +10,9 @@ from bson import ObjectId
 from .agents.categorize_agent import categorize_agent
 from .agents.db_saver import save_data_to_db
 from .agents.recipe_modifier_agent import recipe_modifier_agent
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class MasterAgent:
    def __init__(self):
@@ -35,7 +38,7 @@ class MasterAgent:
        return workflow.compile() 
 
    def run_new_query(self, user_email: str, query: str) -> State:
-        print(f"Running new query {query}")
+        logger.info(f"Running new query {query}")
         try: 
             initial_state = State(
                 messages=[HumanMessage(content=query)],
@@ -51,17 +54,17 @@ class MasterAgent:
             return result
             
         except Exception as e:
-            print(f"Error running new query: {e}")
+            logger.error(f"Error running new query: {e}")
             raise e
         
    def run_scheduled_query(self, query_id: str) -> State:
-        print(f"Running scheduled query {query_id}")
+        logger.info(f"Running scheduled query {query_id}")
         try: 
             try:
                 query_data = queries_collection.find_one({"_id": ObjectId(query_id)})
                 saved_data = Query(**query_data)
             except Exception as e:
-                print(f"Error finding query in db: {e}")
+                logger.error(f"Error finding query in db: {e}")
                 raise e
 
             initial_state = State(
@@ -79,7 +82,7 @@ class MasterAgent:
             return result
             
         except Exception as e:
-            print(f"Error running scheduled query {query_id}: {e}")
+            logger.error(f"Error running scheduled query {query_id}: {e}")
             raise e
 
 

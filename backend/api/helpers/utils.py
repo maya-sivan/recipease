@@ -3,6 +3,10 @@ from agent_flow.agent_flow import MasterAgent
 from shared.models import BgJobStatus
 from bson import ObjectId
 from fastapi import HTTPException, status
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def convert_str_to_object_id(id: str) -> ObjectId:
     try:
@@ -12,7 +16,7 @@ def convert_str_to_object_id(id: str) -> ObjectId:
     return obj_id
 
 def background_job(job_id: str, user_email: str, query: str, collection, query_id: str | None = None):
-    print(f"Running job for: {user_email} | Query: {query}")
+    logger.info(f"Running job for: {user_email} | Query: {query}")
     try:
         collection.update_one(
             {"job_id": job_id},
@@ -28,7 +32,7 @@ def background_job(job_id: str, user_email: str, query: str, collection, query_i
         else:
             result = master.run_new_query(user_email=user_email, query=query)
 
-        print(f"Job completed: {result}, now saving to db")
+        logger.info(f"Job completed: {result}, now saving to db")
 
         collection.update_one(
             {"job_id": job_id},
@@ -38,7 +42,7 @@ def background_job(job_id: str, user_email: str, query: str, collection, query_i
             }}
         )
     except Exception as e:
-        print(f"Error running job: {e}")
+        logger.error(f"Error running job: {e}")
         collection.update_one(
             {"job_id": job_id},
             {"$set": {

@@ -1,8 +1,12 @@
 from ..custom_types.agent_types import State
 from ..helpers.db_utils import save_query_to_db, save_recipe_to_db
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def save_data_to_db(state: State) -> State:
-      print("💾 Saving data to db")
+      logger.info("💾 Saving data to db")
 
       if(state["query"] is None):
          raise ValueError("Query is required")

@@ -1,8 +1,12 @@
 from datetime import datetime
 from typing import List
+import logging
 
 from shared.db import queries_collection, recipes_collection
 from shared.models import ModifiedRecipeContent, UserInfo, Query, Recipe
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def save_query_to_db(query: str, user_info: UserInfo, user_email: str) -> str:
@@ -15,9 +19,9 @@ def save_query_to_db(query: str, user_info: UserInfo, user_email: str) -> str:
   try:
     result = queries_collection.insert_one(query_object.model_dump())
   except Exception as e:
-    print(f"Error saving query to db: {e}")
+    logger.error(f"Error saving query to db: {e}")
     raise
-  print(f"Query saved to db with id: {result.inserted_id}")
+  logger.info(f"Query saved to db with id: {result.inserted_id}")
   return str(result.inserted_id)
 
 
@@ -31,7 +35,7 @@ def save_recipe_to_db(query_id: str, recipe: ModifiedRecipeContent, restrictions
     try:
       result = recipes_collection.insert_one(recipe_object.model_dump())
     except Exception as e:
-      print(f"Error saving recipe to db: {e}")
+      logger.error(f"Error saving recipe to db: {e}")
       raise
-    print(f"Recipe saved to db with id: {result.inserted_id}")
+    logger.info(f"Recipe saved to db with id: {result.inserted_id}")
     
