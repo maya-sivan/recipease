@@ -14,6 +14,9 @@ services:
       - DB_NAME=${DB_NAME}
       - OPEN_AI_MODEL=${OPEN_AI_MODEL}
       - LANGSMITH_TRACING=${LANGSMITH_TRACING}
+      - LANGSMITH_ENDPOINT=${LANGSMITH_ENDPOINT}
+      - LANGSMITH_API_KEY=${LANGSMITH_API_KEY}
+      - LANGSMITH_PROJECT=${LANGSMITH_PROJECT}
 
   # React Frontend + Nginx Proxy Service
   frontend:
