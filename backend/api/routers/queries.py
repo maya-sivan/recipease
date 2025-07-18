@@ -4,7 +4,10 @@ from shared.models import BgJob, JobRequest, QueryResponse, UpdateResolvedStatus
 from fastapi import APIRouter, Request, HTTPException, status, BackgroundTasks
 from typing import List, Optional
 from uuid import uuid4
+import logging
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 query_router = APIRouter()
 
 @query_router.get("/all", response_description="List all queries", response_model=List[QueryResponse])
@@ -32,7 +35,7 @@ def delete_query_and_related_recipes(id: str, request: Request):
    
     # Delete all recipes associated with this query_id
     result = request.app.database["recipes"].delete_many({"query_id": id})  
-    print(f"Deleted query {id} and {result.deleted_count} related recipes.")
+    logger.info(f"Deleted query {id} and {result.deleted_count} related recipes.")
     return {"query_id": id, "related_recipes_deleted_count": result.deleted_count}
 
 @query_router.post("/bg-job")
@@ -47,7 +50,7 @@ def start_job(payload: JobRequest, background_tasks: BackgroundTasks, request: R
         "created_at": datetime.now(timezone.utc),
         "is_resolved": False
     })
-    print(f"Starting job {job_id} for user {payload.user_email} with query {payload.query}")
+    logger.info(f"Starting job {job_id} for user {payload.user_email} with query {payload.query}")
     background_tasks.add_task(background_job, job_id=job_id, user_email=payload.user_email, query=payload.query, collection=request.app.database["background_tasks"], query_id=None)
     return {"job_id": job_id}
 

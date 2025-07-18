@@ -4,10 +4,14 @@ from agent_flow.custom_types.agent_types import State
 from langchain_openai import ChatOpenAI
 from shared.models import UserInfo
 from langgraph.prebuilt import create_react_agent
-from agent_flow.setup import OPEN_AI_MODEL
+from agent_flow.setup import OPEN_AI_MODEL, OPENAI_API_KEY
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def categorize_agent(state: State) -> State:
-    print("🔍 Categorize Agent")
+    logger.info("🔍 Categorize Agent")
 
     @tool
     def categorize_tool(user_info: UserInfo) -> UserInfo:
@@ -64,7 +68,7 @@ def categorize_agent(state: State) -> State:
         }}
         """
 
-    llm = ChatOpenAI(model=OPEN_AI_MODEL, temperature=0)
+    llm = ChatOpenAI(model=OPEN_AI_MODEL, temperature=0, api_key=OPENAI_API_KEY)
     llm_with_tools = llm.bind_tools([categorize_tool])
 
     prompt = PromptTemplate.from_template(prompt_template)
