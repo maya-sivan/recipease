@@ -68,7 +68,7 @@ def categorize_agent(state: State) -> State:
         }}
         """
 
-    llm = ChatOpenAI(model=OPEN_AI_MODEL, temperature=0)
+    llm = ChatOpenAI(model=OPEN_AI_MODEL, temperature=0, api_key=OPENAI_API_KEY)
     llm_with_tools = llm.bind_tools([categorize_tool])
 
     prompt = PromptTemplate.from_template(prompt_template)

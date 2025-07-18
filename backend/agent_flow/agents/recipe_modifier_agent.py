@@ -231,7 +231,7 @@ def recipe_modifier_agent(state: State) -> State:
         preferences=state["user_info"].preferences,
     )
 
-    llm = ChatOpenAI(model=OPEN_AI_MODEL, temperature=0)
+    llm = ChatOpenAI(model=OPEN_AI_MODEL, temperature=0, api_key=OPENAI_API_KEY)
     llm_with_tools = llm.bind_tools([tavily_search, tavily_crawl, modify_recipe])
 
     agent = create_react_agent(
