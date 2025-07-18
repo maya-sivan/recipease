@@ -4,7 +4,7 @@ from agent_flow.custom_types.agent_types import State
 from langchain_openai import ChatOpenAI
 from shared.models import UserInfo
 from langgraph.prebuilt import create_react_agent
-from agent_flow.setup import OPEN_AI_MODEL
+from agent_flow.setup import OPEN_AI_MODEL, OPENAI_API_KEY
 import logging
 
 logging.basicConfig(level=logging.INFO)

@@ -7,7 +7,7 @@ from shared.models import ModifiedRecipeContent
 from langgraph.prebuilt import create_react_agent
 from langchain_tavily import TavilySearch, TavilyCrawl
 from langchain_core.tools import tool
-from agent_flow.setup import OPEN_AI_MODEL
+from agent_flow.setup import OPEN_AI_MODEL, OPENAI_API_KEY
 import logging
 
 logging.basicConfig(level=logging.INFO)
