@@ -1,7 +1,7 @@
 import type { BgJob, DataQueryParams, Query, Recipe } from "../types";
 
 const BACKEND_PREFIX = import.meta.env.VITE_BACKEND_PREFIX;
-const BACKEND_API_URL = `${window.location.origin}/${BACKEND_PREFIX}`;
+const BACKEND_API_URL = `${window.location.origin.replace("/", "")}/${BACKEND_PREFIX}`;
 
 async function getAllRecipes(): Promise<Recipe[]> {
 	const response = await fetch(`${BACKEND_API_URL}/recipe/all`);
